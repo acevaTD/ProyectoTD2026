@@ -9,4 +9,10 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-#hola
+```{r}
+library(readr)
+df_users <- read_csv("data/logs_moodle_anon.csv",
+                     skip = 1,
+    col_names = c("Fecha","NombreUsuario","UsuarioAfectado", "ContextoEvento", "Componente", "NombreEvento", "Descripcion", "Origen", "IP"))
+```
+

@@ -9,4 +9,29 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-#hola
+```{r}
+# Importación del archivo .csv
+
+library(readr)
+df_users <- read_csv("data/logs_moodle_anon.csv",
+                     skip = 1,
+    col_names = c("Fecha","NombreUsuario","UsuarioAfectado", "ContextoEvento", "Componente", "NombreEvento", "Descripcion", "Origen", "IP"),
+    show_col_types = FALSE)
+
+# Fecha como tipo POSIXlt
+
+df_users$Fecha <- as.POSIXlt(sub(",","",df_users$Fecha), format = "%d/%m/%y %H:%M:%S")
+class(df_users$Fecha)
+
+```
+
+```{r}
+# NombreUsuario, Componente y Origen definidos como factores
+
+df_users$NombreUsuario <- as.factor(df_users$NombreUsuario)
+df_users$Componente <- as.factor(df_users$Componente)
+df_users$Origen <- as.factor(df_users$Origen)
+
+```
+
+

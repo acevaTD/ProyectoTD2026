@@ -13,6 +13,9 @@ knitr::opts_chunk$set(echo = TRUE)
 library(readr)
 df_users <- read_csv("data/logs_moodle_anon.csv",
                      skip = 1,
-    col_names = c("Fecha","NombreUsuario","UsuarioAfectado", "ContextoEvento", "Componente", "NombreEvento", "Descripcion", "Origen", "IP"))
+    col_names = c("Fecha","NombreUsuario","UsuarioAfectado", "ContextoEvento", "Componente", "NombreEvento", "Descripcion", "Origen", "IP"),
+    show_col_types = FALSE)
+df_users$Fecha <- as.POSIXlt(sub(",","",df_users$Fecha), format = "%d/%m/%y %H:%M:%S")
+class(df_users$Fecha)
 ```
 

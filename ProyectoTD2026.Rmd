@@ -18,6 +18,8 @@ header-includes:
   - \usepackage{booktabs}
   - \usepackage{longtable}
   - \providecommand{\pandocbounded}[1]{#1}
+  - \usepackage{pdflscape}
+  
 output: 
   rticles::elsevier_article:
     keep_tex: true
@@ -67,7 +69,7 @@ Como se puede observar en la Tabla \ref{tab:tab_componentes}, hay 26 componentes
 # Usuarios más activos
 Vamos a ver que usuario ha sido el que más veces se ha registrado.
 
-```{r fig1, fig.align='center', echo=FALSE, fig.cap="A figure added with a code chunk.\\label{fig:fig1}"}
+```{r fig1, fig.align='center', echo=FALSE, fig.cap="A figure added with a code chunk.\\label{fig:fig1}, echo = FALSE, message=FALSE, warning=FALSE, results='hide'"}
 library(ggplot2)
 table(df_users$NombreUsuario)[1]
 ggplot(df_users, aes(x = NombreUsuario)) + geom_bar() +
@@ -75,6 +77,29 @@ ggplot(df_users, aes(x = NombreUsuario)) + geom_bar() +
 ```
 
 Como podemos ver en la Figura \ref{fig:fig1}, hay un tipo to rayao.
+
+# Usuarios más activos 2
+
+Vamos a ver que usuario ha sido el que más veces se ha registrado.
+I\par
+
+\begin{landscape}
+
+```
+\section{Usuarios más activos}
+```
+
+```{r fig3, fig.align='center', out.width="100%", fig.cap = "\\label{fig2}Bar plot horizontal!!.", echo = FALSE, message=FALSE, warning=FALSE, results='hide'}
+library(ggplot2)
+table(df_users$NombreUsuario)[1]
+ggplot(df_users, aes(x = NombreUsuario)) + geom_bar() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+```
+
+\end{landscape}
+
+
+Como podemos ver en la Figura \ref{fig:fig3}, hay un tipo to rayao.
 
 
 

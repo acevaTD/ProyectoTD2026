@@ -14,7 +14,10 @@ abstract: |
   Este proyecto tiene como objetivo hallar información a partir de un archivo CSV con los registros de los usuarios de TD 2024-2025. 
   
   *Nota: Todos los miembros han participado equitativamente en el trabajo.*
+geometry: margin=2cm
+
 header-includes:
+  - \newcounter{none}
   - \usepackage{booktabs}
   - \usepackage{longtable}
   - \providecommand{\pandocbounded}[1]{#1}
@@ -69,7 +72,7 @@ Como se puede observar en la Tabla \ref{tab:tab_componentes}, hay 26 componentes
 # Usuarios más activos
 Vamos a ver que usuario ha sido el que más veces se ha registrado.
 
-```{r fig1, fig.align='center', echo=FALSE, fig.cap="A figure added with a code chunk.\\label{fig:fig1}, echo = FALSE, message=FALSE, warning=FALSE, results='hide'"}
+```{r fig1, fig.align='center', out.width="100%", echo=FALSE, fig.cap="A figure added with a code chunk.\\label{fig:fig1}, echo = FALSE, message=FALSE, warning=FALSE, results='hide'"}
 library(ggplot2)
 table(df_users$NombreUsuario)[1]
 ggplot(df_users, aes(x = NombreUsuario)) + geom_bar() +
@@ -85,21 +88,87 @@ I\par
 
 \begin{landscape}
 
+
 ```
 \section{Usuarios más activos}
 ```
 
-```{r fig3, fig.align='center', out.width="100%", fig.cap = "\\label{fig2}Bar plot horizontal!!.", echo = FALSE, message=FALSE, warning=FALSE, results='hide'}
+```{r fig3, fig.align='left', out.width="100%", fig.cap = "\\label{fig2}Bar plot horizontal!!.", echo = FALSE, message=FALSE, warning=FALSE, results='hide'}
+library(gridExtra)
+library(grid)
 library(ggplot2)
 table(df_users$NombreUsuario)[1]
 ggplot(df_users, aes(x = NombreUsuario)) + geom_bar() +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1), plot.background = element_rect(color = "black"))
+
 ```
 
 \end{landscape}
 
 
 Como podemos ver en la Figura \ref{fig:fig3}, hay un tipo to rayao.
+
+# Mes con más registros
+
+Los meses en los que más registros han habido
+
+```{r fig4, fig.align='center', out.width="100%", fig.cap = "\\label{fig2}Bar plot horizontal!!.", echo = FALSE, message=FALSE, warning=FALSE, results='hide'}
+library(dplyr)
+library(kableExtra)
+#library(lubridate)
+
+meses_frec <- df_users %>% group_by(df_users$Fecha$mon + 1) %>% count()
+names(meses_frec) <- c("Mes", "Total")
+kable(meses_frec)
+meses_frec$Mes <- as.factor(meses_frec$Mes)
+
+ggplot(meses_frec, aes(x = Mes, y = Total)) +
+  scale_x_discrete(labels = c("Enero", "Febrero", "Marzo", "Abril", "Mayo", 
+                              "Junio", "Julio", "Agosto", "Septiembre", 
+                              "Octubre", "Noviembre", "Diciembre")) +
+  geom_segment(aes(x = Mes, xend = Mes,
+                   y = 0, yend = Total)) +
+  geom_point(size = 6, pch = 21, bg = 4, col = 1) +
+  geom_text(aes(label = Total), vjust = -1, color = "black", size = 3.5) +
+  coord_flip() + theme_minimal()
+
+#nrow(df_users %>%
+  #filter(month(Fecha) == 5))
+
+```
+
+# Contexto con más registros
+
+Los contextos más visitados son:
+
+```{r}
+library(dplyr)
+df_users %>% group_by(ContextoEvento) %>% count() %>% filter(n<30000)
+
+ggplot(df_users %>% group_by(ContextoEvento) %>% count() %>% filter(n<30000 & n > 500), aes(x = ContextoEvento, y = n)) + geom_col() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1), plot.background = element_rect(color = "black"))
+```
+
+```{r}
+# Todos los componentes
+library(stringr)
+
+#df_teacher <- df_users %>% filter(NombreUsuario == "U0072")
+
+ggplot(df_users, aes(x = Componente)) + geom_bar()+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1), plot.background = element_rect(color = "black"))
+
+## Todos los cuestionarios
+ggplot(df_users %>% filter(Componente == "Cuestionario"), aes(x = ContextoEvento)) + geom_bar()+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1), plot.background = element_rect(color = "black"))
+nrow(df_users %>% filter(Componente == "Cuestionario") %>% distinct(ContextoEvento)) # Cantidad de cuestionarios
+
+## Todas las tareas
+ggplot(df_users %>% filter(Componente == "Tarea"), aes(x = ContextoEvento)) + geom_bar()+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1), plot.background = element_rect(color = "black"))
+nrow(df_users %>% filter(Componente == "Tarea") %>% distinct(ContextoEvento)) # Cantidad de tareas
+```
+
 
 
 

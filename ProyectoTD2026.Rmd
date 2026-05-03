@@ -169,6 +169,11 @@ ggplot(df_users %>% filter(Componente == "Tarea"), aes(x = ContextoEvento)) + ge
 nrow(df_users %>% filter(Componente == "Tarea") %>% distinct(ContextoEvento)) # Cantidad de tareas
 ```
 
+# Usuarios sin retroalimentación
+
+```{r}
 
 
+
+```
 

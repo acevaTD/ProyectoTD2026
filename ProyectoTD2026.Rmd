@@ -108,7 +108,7 @@ ggplot(df_users, aes(x = NombreUsuario)) + geom_bar() +
 
 Como podemos ver en la Figura \ref{fig:fig3}, hay un tipo to rayao.
 
-# Mes con más visitas
+# Mes con más registros
 
 Los meses en los que más registros han habido
 
@@ -135,6 +135,38 @@ ggplot(meses_frec, aes(x = Mes, y = Total)) +
 #nrow(df_users %>%
   #filter(month(Fecha) == 5))
 
+```
+
+# Contexto con más registros
+
+Los contextos más visitados son:
+
+```{r}
+library(dplyr)
+df_users %>% group_by(ContextoEvento) %>% count() %>% filter(n<30000)
+
+ggplot(df_users %>% group_by(ContextoEvento) %>% count() %>% filter(n<30000 & n > 500), aes(x = ContextoEvento, y = n)) + geom_col() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1), plot.background = element_rect(color = "black"))
+```
+
+```{r}
+# Todos los componentes
+library(stringr)
+
+#df_teacher <- df_users %>% filter(NombreUsuario == "U0072")
+
+ggplot(df_users, aes(x = Componente)) + geom_bar()+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1), plot.background = element_rect(color = "black"))
+
+## Todos los cuestionarios
+ggplot(df_users %>% filter(Componente == "Cuestionario"), aes(x = ContextoEvento)) + geom_bar()+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1), plot.background = element_rect(color = "black"))
+nrow(df_users %>% filter(Componente == "Cuestionario") %>% distinct(ContextoEvento)) # Cantidad de cuestionarios
+
+## Todas las tareas
+ggplot(df_users %>% filter(Componente == "Tarea"), aes(x = ContextoEvento)) + geom_bar()+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1), plot.background = element_rect(color = "black"))
+nrow(df_users %>% filter(Componente == "Tarea") %>% distinct(ContextoEvento)) # Cantidad de tareas
 ```
 
 

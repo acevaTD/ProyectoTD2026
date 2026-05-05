@@ -185,3 +185,27 @@ length(unique(df_users$UsuarioAfectado))
 
 Parece que el usuario U0071 no ha hecho nada en todo el curso, y U0072 sha sido 
 desmatriculado.
+
+# Cual fue el dia con más visitas
+```{r fig5, fig.align='center',fig.cap="Evolución de las visitas diarias"}
+library(ggplot2)
+library(scales)
+
+df_visitas <- df_users
+
+df_visitas$SoloFecha <- as.Date(df_visitas$Fecha) #nos quedamos solo con la fecha
+rank_dias <- df_visitas %>% group_by(SoloFecha) %>% summarise(Total = n()) %>% arrange(desc(Total))
+
+dia_mas_accesos <- rank_dias[1,] # seleccionar la primera fila porque está ordenado
+
+ggplot(rank_dias, aes(x = SoloFecha, y = Total)) +
+  geom_line(color = "darkblue", size = 0.7) +
+  geom_point(data = dia_mas_accesos, aes(x = SoloFecha, y = Total), color = "red", size = 3) +
+  geom_text(data = dia_mas_accesos, aes(label = paste("Máximo:", SoloFecha)), hjust = 1.1) +
+  scale_x_date(date_breaks = "1 month", date_labels = "%b %Y") + # Una etiqueta por mes
+  theme_minimal() +
+  labs(title = "Evolución visitas diarias", x = "Fecha", y = "Registros") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) # Gira el texto 45 grados
+```
+
+Se puede observar en este gráfico que el dia que mas se repite es el 13 de junio de 2025.

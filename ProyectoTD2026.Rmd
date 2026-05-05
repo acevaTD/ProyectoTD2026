@@ -169,6 +169,19 @@ ggplot(df_users %>% filter(Componente == "Tarea"), aes(x = ContextoEvento)) + ge
 nrow(df_users %>% filter(Componente == "Tarea") %>% distinct(ContextoEvento)) # Cantidad de tareas
 ```
 
+# Usuarios sin retroalimentación
 
+```{r}
+#table((df_users %>% filter(!is.na(UsuarioAfectado))) == (df_users %>% filter(!is.na(UsuarioAfectado))))
 
+df_users_usuario_afectado <- df_users %>% filter(!is.na(UsuarioAfectado) & UsuarioAfectado != NombreUsuario)
 
+unique(df_users_usuario_afectado$NombreEvento)
+
+unique((df_users_usuario_afectado %>% filter(NombreEvento == "Usuario matriculado en el curso"))$UsuarioAfectado)
+
+length(unique(df_users$UsuarioAfectado))
+```
+
+Parece que el usuario U0071 no ha hecho nada en todo el curso, y U0072 sha sido 
+desmatriculado.

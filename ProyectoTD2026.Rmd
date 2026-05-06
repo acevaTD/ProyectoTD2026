@@ -183,5 +183,64 @@ unique((df_users_usuario_afectado %>% filter(NombreEvento == "Usuario matriculad
 length(unique(df_users$UsuarioAfectado))
 ```
 
-Parece que el usuario U0071 no ha hecho nada en todo el curso, y U0072 sha sido 
+Parece que el usuario U0071 no ha hecho nada en todo el curso, y U0072 ha sido 
 desmatriculado.
+
+# Información de las IPS
+
+```{r}
+## Idea de Copilot Search ##
+
+library(httr)
+library(jsonlite)
+
+get_ip_info <- function(ips) {
+  if (length(ips) > 100) {
+    return("Error: La API solo permite un máximo de 100 IPs por lote.")
+  }
+    
+  url <- "http://ip-api.com/batch?fields=status,message,country,regionName,city,lat,lon,isp,org,query"
+  
+  # Enviamos la lista de IPs en el cuerpo de la petición como JSON
+  body <- toJSON(ips)
+  
+  # Manejo de errores de conexión (¡Cambiamos GET por POST!)
+  res <- tryCatch({
+    POST(url, body = body, encode = "json", timeout(10))
+  }, error = function(e) {
+    return(paste("Error de conexión:", e$message))
+  })
+  
+  # Si el tryCatch capturó un error, 'res' será un string. Lo devolvemos.
+  if (is.character(res)) {
+    return(res)
+  }
+  
+  # Comprobar respuesta HTTP (aquí capturaría un 429 si te pasas del límite)
+  if (status_code(res) != 200) {
+    return(paste("Error HTTP:", status_code(res)))
+  }
+  
+  # Parsear el JSON a un data.frame
+  data <- fromJSON(content(res, "text", encoding = "UTF-8"))
+  
+  # Devolvemos el data.frame. Si alguna IP individual falló, 
+  # su columna 'status' pondrá "fail" y en 'message' pondrá el motivo.
+  return(data)
+}
+
+# Hasta el 5200
+data <- c()
+for (i in 0:51) {
+  print(i)
+  data2 <- get_ip_info(unique(df_users$IP)[(100*i + 1):(100*(i+1))])
+  data <- bind_rows(data, data2)
+  Sys.sleep(5)
+
+}
+data2 <- get_ip_info(unique(df_users$IP)[5201:length(unique(df_users$IP))])
+data <- bind_rows(data, data2)
+
+View(data)
+```
+

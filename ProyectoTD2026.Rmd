@@ -221,3 +221,37 @@ ggplot(rank_dias, aes(x = SoloFecha, y = Total)) +
 ```
 
 Se puede observar en este gráfico que el dia que mas se repite es el 13 de junio de 2025.
+
+
+# Primer y último dia del dataframe
+```{r}
+df_grafico <- df_visitas %>% group_by(SoloFecha) %>% summarise(n_visitas = n()) %>% arrange(SoloFecha)
+
+primer_acceso <- min(df_grafico$SoloFecha)
+ultimo_acceso <- max(df_grafico$SoloFecha)
+
+extremos <- df_grafico %>% filter(SoloFecha == min(SoloFecha) | SoloFecha == max(SoloFecha))
+# grafico
+ggplot(df_grafico, aes(x = SoloFecha, y = 1)) +
+  # Línea central
+  geom_hline(yintercept = 1, color = "gray80") +
+  # Puntos (todos y extremos)
+  geom_point(aes(size = n_visitas), color = "coral", alpha = 0.4) + 
+  geom_point(data = extremos, aes(size = n_visitas), color = "blue") +
+  # Etiquetas de fecha (ajustadas para no cortarse)
+  geom_text(data = extremos, 
+            aes(label = format(SoloFecha, "%d-%m-%Y"),
+                hjust = ifelse(SoloFecha == min(SoloFecha), 0, 1)), 
+            vjust = -2.5, fontface = "bold") +
+  # Márgenes de seguridad y formato de fecha
+  scale_x_date(expand = expansion(mult = c(0.1, 0.1)), date_labels = "%b %Y") +
+  # Eliminación de TODO lo innecesario
+  theme_void() + 
+  theme(
+    axis.text.x = element_text(color = "black", size = 9), # Solo dejamos el texto del año/mes
+    plot.margin = margin(30, 20, 10, 20),
+    legend.position = "right" # Puedes poner "none" si tampoco quieres la leyenda del tamaño
+  )
+```
+
+Se puede observar en la linea del tiempo que el primer dia del dataframe es el 11-07-2024 y el último día es el 3-3-2026

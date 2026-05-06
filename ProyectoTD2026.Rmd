@@ -241,6 +241,37 @@ for (i in 0:51) {
 data2 <- get_ip_info(unique(df_users$IP)[5201:length(unique(df_users$IP))])
 data <- bind_rows(data, data2)
 
-View(data)
 ```
 
+# Unión de la información de la IP con los registros
+
+### NA en las IPs
+
+```{r}
+df_users_conflictivo <- (df_users_full %>% filter(is.na(IPEstado)) %>% filter(Origen != "cli"))
+View(df_users_conflictivo)
+```
+
+
+```{r}
+library(ggplot2)
+library(ggrepel)
+library(tidyverse)
+names(data) <- c("IPEstado", "IPPais", "IPRegion", "IPCiudad", "IPLat", "IPLon", "IPIsp", "IPOrg",  "IP", "IPMensaje")
+names(data)
+df_users_full <- df_users %>% left_join(data, by = "IP")
+
+
+
+# Data transformation
+df_pie <- df_users_full %>% 
+  group_by(IPEstado) %>% # Variable to be transformed
+  count() %>% 
+  ungroup() %>% 
+  mutate(perc = `n` / sum(`n`)) %>% 
+  arrange(perc) %>%
+  mutate(labels = scales::percent(perc))
+
+## SIN ACABAR ¿POR QUÉ df_users_full tiene menos rows que df_users?????
+get_ip_info("2a09:bac2:311b:245a:0:0:39f:7e")
+```

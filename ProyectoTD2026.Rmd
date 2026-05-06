@@ -5,11 +5,23 @@ author:
     affiliation: a
   - name: "Carlos Albiach Melgar"
     affiliation: b
+  - name: "Mariana Cajigas Acosta"
+    affiliation: c
+  - name: "Iñaki Berenguer Antón"
+    affiliation: d
+  - name: "Nacho Rodríguez López"
+    affiliation: e
 address:
   - code: a
-    address: "leutnant@fh-muenster.de"
+    address: "aceva@alumni.uv.es"
   - code: b
     address: "caralmel@alumni.uv.es"
+  - code: c
+    address: "cajigas@alumni.uv.es"
+  - code: d
+    address: "iabean@alumni.uv.es"
+  - code: e
+    address: "narolo3@alumni.uv.es"
 abstract: |
   Este proyecto tiene como objetivo hallar información a partir de un archivo CSV con los registros de los usuarios de TD 2024-2025. 
   

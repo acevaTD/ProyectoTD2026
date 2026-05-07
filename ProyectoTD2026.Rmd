@@ -185,3 +185,10 @@ length(unique(df_users$UsuarioAfectado))
 
 Parece que el usuario U0071 no ha hecho nada en todo el curso, y U0072 sha sido 
 desmatriculado.
+
+# ¿Cuál es el proveedor de servicios más común?
+
+```{r}
+
+```
+

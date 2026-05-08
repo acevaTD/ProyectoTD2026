@@ -205,3 +205,18 @@ ggplot(actividad_usuarios, aes(x = NombreUsuario, y = registros)) +
 
 ```
 La actividad está relativamente distribuida entre la mayoría de usuarios, pero el usuario U0069 destaca como un valor atípico, porque acumula muchos más registros que el resto de usuarios.
+
+# Origen que más se repite 
+```{r}
+library(dplyr)
+library(ggplot2)
+
+origen_frecuencia <- df_users %>%
+  group_by(Origen) %>%
+  summarise(total = n()) %>%
+  arrange(desc(total))
+
+origen_frecuencia
+
+```
+El origen más frecuente es web con 106736 registros

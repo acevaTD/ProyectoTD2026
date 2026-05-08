@@ -208,8 +208,6 @@ La actividad está relativamente distribuida entre la mayoría de usuarios, pero
 
 # Origen que más se repite 
 ```{r}
-library(dplyr)
-library(ggplot2)
 
 origen_frecuencia <- df_users %>%
   group_by(Origen) %>%
@@ -220,3 +218,18 @@ origen_frecuencia
 
 ```
 El origen más frecuente es web con 106736 registros
+
+# Usuario que más y menos aparece
+
+```{r}
+usuario_mas <- actividad_usuarios %>%
+  filter(registros == max(registros))
+
+usuario_mas
+
+usuario_menos <- actividad_usuarios %>%
+  filter(registros == min(registros))
+
+usuario_menos
+```
+El usario con mayor frecuencia es U0072 con 13079 registros, mientras que los usuarios con menor frecuencia son U0085 y U0093, con 1 registro

@@ -185,3 +185,23 @@ length(unique(df_users$UsuarioAfectado))
 
 Parece que el usuario U0071 no ha hecho nada en todo el curso, y U0072 sha sido 
 desmatriculado.
+
+# Concentración de actividad por usuario
+```{r}
+library(dplyr)
+library(ggplot2)
+
+actividad_usuarios <- df_users %>%
+ group_by(NombreUsuario) %>%
+ summarise(registros = n()) %>%
+ arrange(desc(registros))
+
+
+ggplot(actividad_usuarios, aes(x = NombreUsuario, y = registros)) +
+  geom_bar(stat = "identity", width = 0.5) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))+
+  labs(title = "Concentración de actividad por usuario",
+       x = "Usuario", y = "Número de registros")
+
+```
+La actividad está relativamente distribuida entre la mayoría de usuarios, pero el usuario U0069 destaca como un valor atípico, porque acumula muchos más registros que el resto de usuarios.

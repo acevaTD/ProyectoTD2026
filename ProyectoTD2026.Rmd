@@ -190,6 +190,17 @@ desmatriculado.
 # ¿Cuál es el proveedor de servicios más común?
 
 ```{r}
+# Agrupamos por la columna IP y contamos las frecuencias
+proveedor_counts <- as.data.frame(table(df_users$IP))
+colnames(proveedor_counts) <- c("IP", "Frecuencia")
+proveedor_counts <- proveedor_counts[order(-proveedor_counts$Frecuencia), ]
 
+# Mostramos las 10 primeras
+head(proveedor_counts, 10)
+
+# Gráfico para obtener las conclusiones visualmente
+library(ggplot2)
+ggplot(head(proveedor_counts, 10), aes(x = reorder(IP, Frecuencia), y = Frecuencia)) + geom_col(fill = "blue") + coord_flip() + labs(title = "Top 10 Direcciones IP (Proveedores)", x = "Dirección IP", y = "Número de interacciones") + theme_minimal()
 ```
 
+El proveedor de servicios más común se identifica mediante el análisis de las direcciones IP. Según la información que he encontrado, la IP más frecuente que observamos en la solución del código, suele pertenecer a la red de la Universitat de València (RedIRIS). Lo cual es lógico ya que los usuarios acceden principalmente desde el campus o mediante la VPN universitaria.

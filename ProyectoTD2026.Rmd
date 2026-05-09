@@ -189,7 +189,7 @@ desmatriculado.
 # Información de las IPS
 
 ```{r ip-call}
-## Idea de Copilot Search ##
+## Idea de Copilot Search + Gemini ##
 
 library(httr)
 library(jsonlite)
@@ -256,7 +256,7 @@ library(ggrepel)
 library(tidyverse)
 names(data) <- c("IPEstado", "IPPais", "IPRegion", "IPCiudad", "IPLat", "IPLon", "IPIsp", "IPOrg",  "IP", "IPMensaje")
 names(data)
-data$IP == unique(df_users$IP)
+
 df_users_full <- df_users %>% left_join(data, by = "IP")
 
 # Data transformation
@@ -269,4 +269,138 @@ df_pie <- (df_users_full %>% filter(Origen != "cli")) %>%
   arrange(perc) %>%
   mutate(labels = scales::percent(perc))
 df_pie
+
+ggplot(df_pie, aes(x = "", y = perc, fill = IPEstado)) +
+  geom_col(color = "black") +
+  geom_label(aes(label = labels), color = c("white", "white"),
+            position = position_stack(vjust = 0.5),
+            show.legend = FALSE) +
+  guides(fill = guide_legend(title = "IP lograda")) +
+  coord_polar(theta = "y") +
+  scale_fill_manual(values = c("tomato", "forestgreen")) +
+  theme_void()
+
 ```
+
+#Mapa de las IPS
+
+```{r}
+df_ips_success <- df_users_full %>% filter(IPEstado == "success")
+library(giscoR)
+library(sf)
+library(mapdata)
+library(ggplot2)
+library(maps)
+library(ggrepel)
+library(ggthemes)
+library(patchwork)
+meteoritos <- readr::read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2019/2019-06-11/meteorites.csv")
+## Parsed with column specification:
+## cols(
+##   name = col_character(),
+##   id = col_double(),
+##   name_type = col_character(),
+##   class = col_character(),
+##   mass = col_double(),
+##   fall = col_character(),
+##   year = col_double(),
+##   lat = col_double(),
+##   long = col_double(),
+##   geolocation = col_character()
+## )
+
+# Quitamos los elementos que faltan (na´s) para la representación gráfica
+
+meteoritos_mapa <- meteoritos %>%
+  drop_na()
+
+options(scipen = 999) # para evitar la anotación científica 
+mapa_mundo <- map_data("world")
+# Graficamos indicando 
+
+mapa_mundo %>%
+  ggplot() +
+  geom_polygon(aes( x= long, y = lat, group = group),
+               fill = "grey80",
+               color = "white") +
+  geom_point(data= meteoritos_mapa, 
+             aes(x=long, y = lat, size = mass/1000), 
+             stroke = F) +
+  scale_size_continuous(name = "Kg") +
+  ggtitle( "Meteoritos") +
+  theme_map()
+
+df_ips_lat_lon <- df_ips_success %>% select(IPLat, IPLon, IP) %>% distinct()
+repetidos <- df_ips_success %>% group_by(IP) %>% count()
+df_ips_lat_lon <- inner_join(df_ips_lat_lon, repetidos, by = "IP")
+
+
+# Mapa de la Península Ibérica
+
+mapa_esp <- mapa_mundo %>% 
+  ggplot() + 
+  geom_polygon(aes(x = long, y = lat, group = group),
+               fill = "grey80",
+               color = "white") +
+  geom_point(data = df_ips_lat_lon,
+             aes(x = IPLon, y = IPLat, size = n),
+             stroke = F,
+             color = "orange") +
+  theme_minimal() +
+  theme(
+    axis.line = element_blank(),
+    axis.text = element_blank(),
+    axis.title = element_blank(),
+    axis.ticks = element_blank(),
+    panel.background = element_rect(colour= "black", size= 1)) +
+  ggtitle( "Mapa de la Península Ibérica") +
+  coord_fixed (xlim= c(-12,5),
+              ylim= c(35,45),
+              ratio = 1.3)
+
+
+# Mapa del mundo
+
+mapa_mundo %>% 
+  ggplot() + 
+  geom_polygon(aes(x = long, y = lat, group = group),
+               fill = "grey80",
+               color = "white") +
+  geom_point(data = df_ips_lat_lon,
+             aes(x = IPLon, y = IPLat, size = n),
+             stroke = F,
+             color = "orange") +
+  theme_map()
+
+# Islas canarias
+
+mapa_canarias <- mapa_mundo %>% 
+  ggplot() + 
+  geom_polygon(aes(x = long, y = lat, group = group),
+               fill = "grey80",
+               color = "white") +
+  geom_point(data = df_ips_lat_lon,
+             aes(x = IPLon, y = IPLat, size = n),
+             stroke = F,
+             color = "orange") +
+  coord_fixed(xlim= c(-18,-12),
+              ylim= c(27,30),
+              ratio= 1.3) +
+  scale_size_continuous(name = "kg") +
+  scale_color_gradient(low= "orange", high= "brown", name= "Kg") +
+  guides(color= guide_legend()) +
+  theme_classic() +
+  theme(
+    axis.line = element_blank(),
+    axis.text = element_blank(),
+    axis.title = element_blank(),
+    axis.ticks = element_blank(),
+    panel.background = element_rect(colour= "grey30", size= 1, fill= NA),
+    legend.position = "none"
+  ) 
+
+wrap_plots(mapa_canarias, mapa_esp, widths = c(0.3,1), heights = c(0.3,1), ncol = 1, nrow = 2)
+```
+
+
+# 

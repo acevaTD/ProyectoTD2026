@@ -220,3 +220,28 @@ unique(usuarios_afectados_distintos$NombreEvento)
 ```
 
 Podemos ver que existen numerosos registros donde el usuario afectado es distinto al autor de la acción (15682). Esto sucede en eventos como los que se han impreso por pantalla, cuando un usuario visualiza el perfil de otro, cuando se realizan matriculaciones en grupos,... Por ejemplo podemos observar en el dataframe, registros como el del usuario U0072 que interactúa con el perfil o datos de otros usuarios como U0055.
+
+
+# ¿Qué meses hay más tareas?
+
+```{r}
+# Filtramos por el componente "Tarea"
+tareas <- df_users[df_users$Componente == "Tarea", ]
+
+# Extraemos el mes, Fecha$mon devuelve los meses del 0 al 11, así que sumamos 1
+meses_tareas <- table(tareas$Fecha$mon + 1)
+
+# Creamos un dataframe para el gráfico
+df_meses_tareas <- as.data.frame(meses_tareas)
+colnames(df_meses_tareas) <- c("Mes", "Cantidad")
+
+# Definimos los nombres de los meses
+nombres_meses <- c("Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre")
+
+# Gráfico para obtener las conclusiones visualmente
+library(ggplot2)
+ggplot(df_meses_tareas, aes(x = Mes, y = Cantidad)) + geom_bar(stat = "identity", fill = "green") + scale_x_discrete(labels = nombres_meses[as.numeric(levels(df_meses_tareas$Mes))]) + labs(title = "Actividad de Tareas por Mes", x = "Mes", y = "Total de registros") + theme_minimal()
+```
+
+Gracias al gráfico anterior vemos que el pico máxima de actividad es en el mes de febrero, con mucha diferencia. Esto indica que es el mes donde se concentran la mayoría de las entregas finales, correcciones, cierres de actividades evaluables del primer semestre o inicio del segundo,...
+Los meses de abril, marzo y mayo presentan niveles de actividad moderados pero constantes, lo que sugiere un flujo de trabajo continuo durante el segundo cuatrimestre.

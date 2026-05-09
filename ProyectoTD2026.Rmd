@@ -204,3 +204,19 @@ ggplot(head(proveedor_counts, 10), aes(x = reorder(IP, Frecuencia), y = Frecuenc
 ```
 
 El proveedor de servicios más común se identifica mediante el análisis de las direcciones IP. Según la información que he encontrado, la IP más frecuente que observamos en la solución del código, suele pertenecer a la red de la Universitat de València (RedIRIS). Lo cual es lógico ya que los usuarios acceden principalmente desde el campus o mediante la VPN universitaria.
+
+
+# ¿Hay algún usuario afectado que no sea él mismo?
+
+```{r}
+# Filtramos los registros donde UsuarioAfectado no es NA y es distinto al NombreUsuario
+usuarios_afectados_distintos <- df_users[(!is.na(df_users$UsuarioAfectado)) & (df_users$UsuarioAfectado != "NA") & (df_users$UsuarioAfectado != df_users$NombreUsuario), ]
+
+# Vemos si hay resultados
+nrow(usuarios_afectados_distintos)
+
+# Tipo de eventos
+unique(usuarios_afectados_distintos$NombreEvento)
+```
+
+Podemos ver que existen numerosos registros donde el usuario afectado es distinto al autor de la acción (15682). Esto sucede en eventos como los que se han impreso por pantalla, cuando un usuario visualiza el perfil de otro, cuando se realizan matriculaciones en grupos,... Por ejemplo podemos observar en el dataframe, registros como el del usuario U0072 que interactúa con el perfil o datos de otros usuarios como U0055.

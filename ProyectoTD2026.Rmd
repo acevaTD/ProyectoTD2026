@@ -195,6 +195,311 @@ unique((df_users_usuario_afectado %>% filter(NombreEvento == "Usuario matriculad
 length(unique(df_users$UsuarioAfectado))
 ```
 
+Parece que el usuario U0071 no ha hecho nada en todo el curso, y U0072 ha sido 
+desmatriculado.
+
+# Información de las IPS
+
+```{r ip-call}
+## Idea de Copilot Search + Gemini ##
+
+library(httr)
+library(jsonlite)
+
+get_ip_info <- function(ips) {
+  if (length(ips) > 100) {
+    return("Error: La API solo permite un máximo de 100 IPs por lote.")
+  }
+    
+  url <- "http://ip-api.com/batch?fields=status,message,country,regionName,city,lat,lon,isp,org,query"
+  
+  # Enviamos la lista de IPs en el cuerpo de la petición como JSON
+  body <- toJSON(ips)
+  
+  # Manejo de errores de conexión (¡Cambiamos GET por POST!)
+  res <- tryCatch({
+    POST(url, body = body, encode = "json", timeout(10))
+  }, error = function(e) {
+    return(paste("Error de conexión:", e$message))
+  })
+  
+  # Si el tryCatch capturó un error, 'res' será un string. Lo devolvemos.
+  if (is.character(res)) {
+    return(res)
+  }
+  
+  # Comprobar respuesta HTTP (aquí capturaría un 429 si te pasas del límite)
+  if (status_code(res) != 200) {
+    return(paste("Error HTTP:", status_code(res)))
+  }
+  
+  # Parsear el JSON a un data.frame
+  data <- fromJSON(content(res, "text", encoding = "UTF-8"))
+  
+  # Devolvemos el data.frame. Si alguna IP individual falló, 
+  # su columna 'status' pondrá "fail" y en 'message' pondrá el motivo.
+  return(data)
+}
+
+# Hasta el 5200
+data <- c()
+
+for (i in 0:51) {
+  print(i)
+  data2 <- get_ip_info(unique(df_users$IP)[(100*i + 1):(100*(i+1))])
+  #data2$query <- str_replace(data2$query, "::", ":0:0:") # El query devuelto es distinto a la IP dada en este caso. Luego el join no funcionaría.
+  data2$query <- unique(df_users$IP)[(100*i + 1):(100*(i+1))]
+  data <- bind_rows(data, data2)
+  Sys.sleep(5)
+
+}
+data2 <- get_ip_info(unique(df_users$IP)[5201:length(unique(df_users$IP))])
+data2$query <- unique(df_users$IP)[5201:length(unique(df_users$IP))] # El query devuelto es distinto a la IP dada en este caso. Luego el join no funcionaría.
+data <- bind_rows(data, data2)
+
+```
+
+# Unión de la información de la IP con los registros
+
+
+```{r}
+library(ggplot2)
+library(ggrepel)
+library(tidyverse)
+names(data) <- c("IPEstado", "IPPais", "IPRegion", "IPCiudad", "IPLat", "IPLon", "IPIsp", "IPOrg",  "IP", "IPMensaje")
+names(data)
+
+df_users_full <- df_users %>% left_join(data, by = "IP")
+
+# Data transformation
+
+df_pie <- (df_users_full %>% filter(Origen != "cli")) %>% 
+  group_by(IPEstado) %>% # Variable to be transformed
+  count() %>% 
+  ungroup() %>% 
+  mutate(perc = `n` / sum(`n`)) %>% 
+  arrange(perc) %>%
+  mutate(labels = scales::percent(perc))
+df_pie
+
+ggplot(df_pie, aes(x = "", y = perc, fill = IPEstado)) +
+  geom_col(color = "black") +
+  geom_label(aes(label = labels), color = c("white", "white"),
+            position = position_stack(vjust = 0.5),
+            show.legend = FALSE) +
+  guides(fill = guide_legend(title = "IP lograda")) +
+  coord_polar(theta = "y") +
+  scale_fill_manual(values = c("tomato", "forestgreen")) +
+  theme_void()
+
+```
+
+#Mapa de las IPS
+
+```{r}
+df_ips_success <- df_users_full %>% filter(IPEstado == "success") %>% filter(IPOrg != "Universidad de Valencia")
+library(giscoR)
+library(sf)
+library(mapdata)
+library(ggplot2)
+library(maps)
+library(ggrepel)
+library(ggthemes)
+library(patchwork)
+meteoritos <- readr::read_csv("https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2019/2019-06-11/meteorites.csv")
+## Parsed with column specification:
+## cols(
+##   name = col_character(),
+##   id = col_double(),
+##   name_type = col_character(),
+##   class = col_character(),
+##   mass = col_double(),
+##   fall = col_character(),
+##   year = col_double(),
+##   lat = col_double(),
+##   long = col_double(),
+##   geolocation = col_character()
+## )
+
+# Quitamos los elementos que faltan (na´s) para la representación gráfica
+
+# meteoritos_mapa <- meteoritos %>%
+#   drop_na()
+
+options(scipen = 999) # para evitar la anotación científica 
+mapa_mundo <- map_data("world")
+# Graficamos indicando 
+
+# mapa_mundo %>%
+#   ggplot() +
+#   geom_polygon(aes( x= long, y = lat, group = group),
+#                fill = "grey80",
+#                color = "white") +
+#   geom_point(data= meteoritos_mapa, 
+#              aes(x=long, y = lat, size = mass/1000), 
+#              stroke = F) +
+#   scale_size_continuous(name = "Kg") +
+#   ggtitle( "Meteoritos") +
+#   theme_map()
+
+df_ips_lat_lon <- df_ips_success %>% select(IPLat, IPLon, IP) %>% distinct()
+repetidos <- df_ips_success %>% group_by(IP) %>% count()
+df_ips_lat_lon <- inner_join(df_ips_lat_lon, repetidos, by = "IP")
+
+
+# Mapa de la Península Ibérica
+
+mapa_esp <- mapa_mundo %>% 
+  ggplot() + 
+  geom_polygon(aes(x = long, y = lat, group = group),
+               fill = "grey80",
+               color = "white") +
+  geom_point(data = df_ips_lat_lon,
+             aes(x = IPLon, y = IPLat, size = n),
+             stroke = F,
+             color = "orange") +
+  theme_classic() +
+  theme(
+    axis.line = element_blank(),
+    axis.text = element_blank(),
+    axis.title = element_blank(),
+    axis.ticks = element_blank(),
+    panel.background = element_rect(colour= "black", size= 1),
+    legend.position = "bottom") +
+  coord_fixed (xlim= c(-12,5),
+              ylim= c(35,45),
+              ratio = 1.3)
+
+
+# Mapa del mundo
+
+mapa_mundo %>% 
+  ggplot() + 
+  geom_polygon(aes(x = long, y = lat, group = group),
+               fill = "grey80",
+               color = "white") +
+  geom_point(data = df_ips_lat_lon,
+             aes(x = IPLon, y = IPLat, size = n),
+             stroke = F,
+             color = "orange") +
+  theme_map()
+
+# Islas canarias
+
+mapa_canarias <- mapa_mundo %>% 
+  ggplot() + 
+  geom_polygon(aes(x = long, y = lat, group = group),
+               fill = "grey80",
+               color = "white") +
+  geom_point(data = df_ips_lat_lon,
+             aes(x = IPLon, y = IPLat, size = n),
+             stroke = F,
+             color = "orange") +
+  coord_fixed(xlim= c(-18,-12),
+              ylim= c(27,30),
+              ratio= 1.3) +
+  scale_size_continuous(name = "Registros") +
+  scale_color_gradient(low= "orange", high= "brown", name= "Registros") +
+  guides(color= guide_legend()) +
+  theme_classic() +
+  theme(
+    axis.line = element_blank(),
+    axis.text = element_blank(),
+    axis.title = element_blank(),
+    axis.ticks = element_blank(),
+    panel.background = element_rect(colour= "grey30", size= 1, fill= NA),
+    legend.position = "none"
+  ) 
+
+wrap_plots(mapa_canarias, mapa_esp, widths = c(0.3,1), heights = c(0.3,1), ncol = 1, nrow = 2) + plot_annotation(title = 'Ubicación de las IPS en España.',
+                subtitle = "",
+                caption = "Registros Moodle Curso TD 2024-2025")
+```
+
+
+# En la Comunidad Valenciana
+
+```{r}
+df_ips_vlc <- df_ips_success %>% filter(IPRegion == "Valencia") %>% filter(IPOrg != "Universidad de Valencia")
+
+df_ips_lat_lon_vlc <- df_ips_vlc %>% select(IPLat, IPLon, IP) %>% distinct()
+repetidos_vlc <- df_ips_success %>% group_by(IP) %>% count()
+df_ips_lat_lon_vlc <- inner_join(df_ips_lat_lon_vlc, repetidos_vlc, by = "IP")
+
+mapa_vlc <- mapa_mundo %>% 
+  ggplot() + 
+  geom_polygon(aes(x = long, y = lat, group = group),
+               fill = "grey80",
+               color = "white") +
+  geom_point(data = df_ips_lat_lon_vlc,
+             aes(x = IPLon, y = IPLat, size = n),
+             stroke = F,
+             color = "orange") +
+  coord_fixed(xlim= c(-1.5,1),
+              ylim= c(37.5,41.2),
+              ratio= 1.3) +
+  scale_size_continuous(name = "Registros") +
+  scale_color_gradient(low= "orange", high= "brown", name= "Registros") +
+  guides(color= guide_legend()) +
+  theme_classic() +
+  theme(
+    axis.line = element_blank(),
+    axis.text = element_blank(),
+    axis.title = element_blank(),
+    axis.ticks = element_blank(),
+    panel.background = element_rect(colour= "grey30", size= 1, fill= NA)
+  ) 
+mapa_vlc
+```
+
+# ¿Dónde han estado los Profesores este curso?
+
+```{r}
+df_profes <- df_ips_success %>% filter(NombreUsuario == "U0072" | NombreUsuario == "U0012" | NombreUsuario == "U0075" | NombreUsuario == "U0095")
+df_ips_lat_lon_profes <- df_profes %>% select(IPLat, IPLon, IP, NombreUsuario) %>% distinct()
+repetidos_profes <- df_profes %>% group_by(IP) %>% count()
+df_ips_lat_lon_profes <- inner_join(df_ips_lat_lon_profes, repetidos_profes, by = "IP")
+colores_profes <- c("U0072" = "blue", "U0075" = "red", "U0095" = "lightpink", "U0012" = "orange")
+mapa_profes <- mapa_mundo %>% 
+  ggplot() + 
+  geom_polygon(aes(x = long, y = lat, group = group),
+               fill = "grey80",
+               color = "white") +
+  geom_point(data = df_ips_lat_lon_profes,
+             aes(x = IPLon, y = IPLat, size = n, color = factor(NombreUsuario)),
+             stroke = F) +
+    coord_fixed(xlim= c(-12,25),
+              ylim= c(35,65),
+              ratio= 1.3) +
+  scale_size_continuous(name = "Registros") +
+  scale_color_manual(name = "Profesores", values = colores_profes) +
+  theme_classic() +
+  theme(
+    axis.line = element_blank(),
+    axis.text = element_blank(),
+    axis.title = element_blank(),
+    axis.ticks = element_blank(),
+    panel.background = element_rect(colour= "grey30", size= 1, fill= NA),
+  ) + labs(title = "Registro de las IPS de los usuarios U0095, U0075, U0072 y U0012")
+mapa_profes
+```
+
+Parece que el profesor ha estado en Madrid... ¿De excursión o "viaje de negocios"...? Quién sabe. Lo que sí se sabe es cuándo fue:
+
+```{r}
+View(df_profes %>% filter(IPRegion != "Valencia")) # Estuvo los días 23 y 24 de septiembre (2024)
+View(df_ips_success %>% filter(NombreEvento == "Se ha calificado el envío.") %>% select(NombreUsuario) %>% distinct()) # profesores!!!!
+```
+
+U0095, U0075, U0072, U0012 SON PROFESORES!!!! Son los únicos que pueden calificar. Tienen el NombreEvento de "Se ha calificado el envío".
+
+# Organización histograma
+
+```{r}
+ggplot(df_users_full %>% group_by(IPOrg) %>% count() %>% filter(n<4000), aes(x = reorder(IPOrg, -n), y = n)) + geom_col() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1), plot.background = element_rect(color = "black"))
+```
+
 Parece que el usuario U0071 no ha hecho nada en todo el curso, y U0072 sha sido 
 desmatriculado.
 

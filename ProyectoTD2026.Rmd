@@ -5,11 +5,23 @@ author:
     affiliation: a
   - name: "Carlos Albiach Melgar"
     affiliation: b
+  - name: "Mariana Cajigas Acosta"
+    affiliation: c
+  - name: "Iñaki Berenguer Antón"
+    affiliation: d
+  - name: "Nacho Rodríguez López"
+    affiliation: e
 address:
   - code: a
-    address: "leutnant@fh-muenster.de"
+    address: "aceva@alumni.uv.es"
   - code: b
     address: "caralmel@alumni.uv.es"
+  - code: c
+    address: "cajigas@alumni.uv.es"
+  - code: d
+    address: "iabean@alumni.uv.es"
+  - code: e
+    address: "narolo3@alumni.uv.es"
 abstract: |
   Este proyecto tiene como objetivo hallar información a partir de un archivo CSV con los registros de los usuarios de TD 2024-2025. 
   
@@ -488,3 +500,259 @@ ggplot(df_users_full %>% group_by(IPOrg) %>% count() %>% filter(n<4000), aes(x =
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1), plot.background = element_rect(color = "black"))
 ```
 
+Parece que el usuario U0071 no ha hecho nada en todo el curso, y U0072 sha sido 
+desmatriculado.
+
+# Cual fue el dia con más visitas(carlos)
+```{r fig5, fig.align='center',fig.cap="Evolución de las visitas diarias"}
+library(ggplot2)
+library(scales)
+
+df_visitas <- df_users
+
+df_visitas$SoloFecha <- as.Date(df_visitas$Fecha) #nos quedamos solo con la fecha
+rank_dias <- df_visitas %>% group_by(SoloFecha) %>% summarise(Total = n()) %>% arrange(desc(Total))
+
+dia_mas_accesos <- rank_dias[1,] # seleccionar la primera fila porque está ordenado
+
+ggplot(rank_dias, aes(x = SoloFecha, y = Total)) +
+  geom_line(color = "darkblue", size = 0.7) +
+  geom_point(data = dia_mas_accesos, aes(x = SoloFecha, y = Total), color = "red", size = 3) +
+  geom_text(data = dia_mas_accesos, aes(label = paste("Máximo:", SoloFecha)), hjust = 1.1) +
+  scale_x_date(date_breaks = "1 month", date_labels = "%b %Y") + # Una etiqueta por mes
+  theme_minimal() +
+  labs(title = "Evolución visitas diarias", x = "Fecha", y = "Registros") +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) # Gira el texto 45 grados
+```
+
+Se puede observar en este gráfico que el dia que mas se repite es el 13 de junio de 2025.
+
+
+# Primer y último dia del dataframe(carlos)
+```{r}
+df_grafico <- df_visitas %>% group_by(SoloFecha) %>% summarise(n_visitas = n()) %>% arrange(SoloFecha)
+
+primer_acceso <- min(df_grafico$SoloFecha)
+ultimo_acceso <- max(df_grafico$SoloFecha)
+
+extremos <- df_grafico %>% filter(SoloFecha == min(SoloFecha) | SoloFecha == max(SoloFecha))
+# grafico
+ggplot(df_grafico, aes(x = SoloFecha, y = 1)) +
+  # Línea central
+  geom_hline(yintercept = 1, color = "gray80") +
+  # Puntos (todos y extremos)
+  geom_point(aes(size = n_visitas), color = "coral", alpha = 0.4) + 
+  geom_point(data = extremos, aes(size = n_visitas), color = "blue") +
+  # Etiquetas de fecha (ajustadas para no cortarse)
+  geom_text(data = extremos, 
+            aes(label = format(SoloFecha, "%d-%m-%Y"),
+                hjust = ifelse(SoloFecha == min(SoloFecha), 0, 1)), 
+            vjust = -2.5, fontface = "bold") +
+  # Márgenes de seguridad y formato de fecha
+  scale_x_date(expand = expansion(mult = c(0.1, 0.1)), date_labels = "%b %Y") +
+  # Eliminación de TODO lo innecesario
+  theme_void() + 
+  theme(
+    axis.text.x = element_text(color = "black", size = 9), # Solo dejamos el texto del año/mes
+    plot.margin = margin(30, 20, 10, 20),
+    legend.position = "right" # Puedes poner "none" si tampoco quieres la leyenda del tamaño
+  )
+```
+
+Se puede observar en la linea del tiempo que el primer dia del dataframe es el 11-07-2024 y el último día es el 3-3-2026
+
+
+# Comparacion de actividad entre semana y fin de semana(carlos)
+
+```{r}
+library(tidyverse)
+library(lubridate)
+
+logs <- df_users #copia
+
+# Convertir fecha
+logs <- logs %>%mutate(Fecha = ymd_hms(Fecha))
+
+
+logs <- logs %>%mutate(num_dia = wday(Fecha,week_start = 1))
+logs <- logs %>%mutate(tipo_dia = ifelse(num_dia >= 6,"Fin de semana","Entre semana"))
+logs <- logs %>% mutate(fecha_solo = as_date(Fecha))
+
+actividad <- logs %>% count(tipo_dia) #recuento dias
+
+# Gráfico 1(barras)
+g1<- ggplot(actividad,aes(x = tipo_dia,y = n,fill = tipo_dia)) + geom_col() +
+  labs(
+    title = "Comparación de actividad entre semana y fin de semana",
+    x = "",
+    y = "Número de eventos"
+  ) + theme_minimal()
+
+actividad_diaria <- logs %>%
+  count(fecha_solo, tipo_dia)
+
+# Grafico 2(scatterplot)
+g2 <-ggplot(actividad_diaria,aes(x = fecha_solo,y = n,color = tipo_dia)) + geom_point() +
+  labs(
+    title = "Comparación de actividad entre semana y fin de semana",
+    x = "Fecha",
+    y = "Número de eventos",
+    color = "Tipo de día"
+  ) + theme_minimal()
+
+g1 
+g2
+```
+
+En los dos gráfico se muestra la misma información de maneras diferentes. La actividad es mucho mayor entre semana que durante el fin de semana. Esto se debe a que la mayoría de clases, prácticas y entregas se realizan de lunes a viernes. En cambio, los fines de semana la actividad disminuye bastante al haber menos actividad académica
+
+# ¿Cuál es el proveedor de servicios más común?
+
+```{r}
+# Agrupamos por la columna IP y contamos las frecuencias
+proveedor_counts <- as.data.frame(table(df_users$IP))
+colnames(proveedor_counts) <- c("IP", "Frecuencia")
+proveedor_counts <- proveedor_counts[order(-proveedor_counts$Frecuencia), ]
+
+# Mostramos las 10 primeras
+head(proveedor_counts, 10)
+
+# Gráfico para obtener las conclusiones visualmente
+library(ggplot2)
+ggplot(head(proveedor_counts, 10), aes(x = reorder(IP, Frecuencia), y = Frecuencia)) + geom_col(fill = "blue") + coord_flip() + labs(title = "Top 10 Direcciones IP (Proveedores)", x = "Dirección IP", y = "Número de interacciones") + theme_minimal()
+```
+
+El proveedor de servicios más común se identifica mediante el análisis de las direcciones IP. Según la información que he encontrado, la IP más frecuente que observamos en la solución del código, suele pertenecer a la red de la Universitat de València (RedIRIS). Lo cual es lógico ya que los usuarios acceden principalmente desde el campus o mediante la VPN universitaria.
+
+
+# ¿Hay algún usuario afectado que no sea él mismo?
+
+```{r}
+# Filtramos los registros donde UsuarioAfectado no es NA y es distinto al NombreUsuario
+usuarios_afectados_distintos <- df_users[(!is.na(df_users$UsuarioAfectado)) & (df_users$UsuarioAfectado != "NA") & (df_users$UsuarioAfectado != df_users$NombreUsuario), ]
+
+# Vemos si hay resultados
+nrow(usuarios_afectados_distintos)
+
+# Tipo de eventos
+unique(usuarios_afectados_distintos$NombreEvento)
+```
+
+Podemos ver que existen numerosos registros donde el usuario afectado es distinto al autor de la acción (15682). Esto sucede en eventos como los que se han impreso por pantalla, cuando un usuario visualiza el perfil de otro, cuando se realizan matriculaciones en grupos,... Por ejemplo podemos observar en el dataframe, registros como el del usuario U0072 que interactúa con el perfil o datos de otros usuarios como U0055.
+
+
+# ¿Qué meses hay más tareas?
+
+```{r}
+# Filtramos por el componente "Tarea"
+tareas <- df_users[df_users$Componente == "Tarea", ]
+
+# Extraemos el mes, Fecha$mon devuelve los meses del 0 al 11, así que sumamos 1
+meses_tareas <- table(tareas$Fecha$mon + 1)
+
+# Creamos un dataframe para el gráfico
+df_meses_tareas <- as.data.frame(meses_tareas)
+colnames(df_meses_tareas) <- c("Mes", "Cantidad")
+
+# Definimos los nombres de los meses
+nombres_meses <- c("Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre")
+
+# Gráfico para obtener las conclusiones visualmente
+library(ggplot2)
+ggplot(df_meses_tareas, aes(x = Mes, y = Cantidad)) + geom_bar(stat = "identity", fill = "green") + scale_x_discrete(labels = nombres_meses[as.numeric(levels(df_meses_tareas$Mes))]) + labs(title = "Actividad de Tareas por Mes", x = "Mes", y = "Total de registros") + theme_minimal()
+```
+
+Gracias al gráfico anterior vemos que el pico máxima de actividad es en el mes de febrero, con mucha diferencia. Esto indica que es el mes donde se concentran la mayoría de las entregas finales, correcciones, cierres de actividades evaluables del primer semestre o inicio del segundo,...
+Los meses de abril, marzo y mayo presentan niveles de actividad moderados pero constantes, lo que sugiere un flujo de trabajo continuo durante el segundo cuatrimestre.
+
+# Concentración de actividad por usuario
+```{r}
+library(dplyr)
+library(ggplot2)
+
+actividad_usuarios <- df_users %>%
+ group_by(NombreUsuario) %>%
+ summarise(registros = n()) %>%
+ arrange(desc(registros))
+
+
+ggplot(actividad_usuarios, aes(x = NombreUsuario, y = registros)) +
+  geom_bar(stat = "identity", width = 0.5) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))+
+  labs(title = "Concentración de actividad por usuario",
+       x = "Usuario", y = "Número de registros")
+
+```
+La actividad está relativamente distribuida entre la mayoría de usuarios, pero el usuario U0069 destaca como un valor atípico, porque acumula muchos más registros que el resto de usuarios.
+
+# Origen que más se repite 
+```{r}
+
+origen_frecuencia <- df_users %>%
+  group_by(Origen) %>%
+  summarise(total = n()) %>%
+  arrange(desc(total))
+
+origen_frecuencia
+
+```
+El origen más frecuente es web con 106736 registros
+
+# Usuario que más y menos aparece
+
+```{r}
+usuario_mas <- actividad_usuarios %>%
+  filter(registros == max(registros))
+
+usuario_mas
+
+usuario_menos <- actividad_usuarios %>%
+  filter(registros == min(registros))
+
+usuario_menos
+```
+El usario con mayor frecuencia es U0072 con 13079 registros, mientras que los usuarios con menor frecuencia son U0085 y U0093, con 1 registro
+
+# ¿Qué tipo de componente es el más repetido?
+```{r}
+logs <- read.csv("data/logs_moodle_anon.csv")
+
+library(ggplot2)
+
+componentes <- logs %>% count(Componente, sort = TRUE)
+
+componentes
+
+componentes %>% top_n(10, n) %>% ggplot(aes(x = reorder(Componente, n), y = n)) + geom_bar(stat = "identity") + coord_flip() +
+  labs(
+    title = "Componentes más frecuentes",
+    x = "Componente",
+    y = "Frecuencia" )
+```
+El tipo de componente más repetido es "Sistema", con 45703 registros
+
+
+# ¿Cuántos usuarios distintos aparecen?
+```{r}
+usuarios_distintos <- n_distinct(logs$Nombre.completo.del.usuario)
+
+usuarios_distintos
+```
+Hay 87 usuarios con nombres distintos
+
+# ¿ A qué hora hay más gente activa en la página?
+```{r}
+
+logs$Hora <- ymd_hms(logs$Hora)
+
+logs$hora_dia <- hour(logs$Hora)
+
+actividad_hora <- logs %>% count(hora_dia)
+
+ggplot(actividad_hora, aes(x = hora_dia, y = n)) + geom_line() + geom_point() +
+  labs(
+    title = "Actividad por hora del día",
+    x = "Hora",
+    y = "Número de eventos" )
+```
+A las 9:00 a.m el número de usuarios activos en la página es mayor que a cualquier otra hora del día

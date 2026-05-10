@@ -245,3 +245,51 @@ ggplot(df_meses_tareas, aes(x = Mes, y = Cantidad)) + geom_bar(stat = "identity"
 
 Gracias al gráfico anterior vemos que el pico máxima de actividad es en el mes de febrero, con mucha diferencia. Esto indica que es el mes donde se concentran la mayoría de las entregas finales, correcciones, cierres de actividades evaluables del primer semestre o inicio del segundo,...
 Los meses de abril, marzo y mayo presentan niveles de actividad moderados pero constantes, lo que sugiere un flujo de trabajo continuo durante el segundo cuatrimestre.
+
+# Concentración de actividad por usuario
+```{r}
+library(dplyr)
+library(ggplot2)
+
+actividad_usuarios <- df_users %>%
+ group_by(NombreUsuario) %>%
+ summarise(registros = n()) %>%
+ arrange(desc(registros))
+
+
+ggplot(actividad_usuarios, aes(x = NombreUsuario, y = registros)) +
+  geom_bar(stat = "identity", width = 0.5) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1))+
+  labs(title = "Concentración de actividad por usuario",
+       x = "Usuario", y = "Número de registros")
+
+```
+La actividad está relativamente distribuida entre la mayoría de usuarios, pero el usuario U0069 destaca como un valor atípico, porque acumula muchos más registros que el resto de usuarios.
+
+# Origen que más se repite 
+```{r}
+
+origen_frecuencia <- df_users %>%
+  group_by(Origen) %>%
+  summarise(total = n()) %>%
+  arrange(desc(total))
+
+origen_frecuencia
+
+```
+El origen más frecuente es web con 106736 registros
+
+# Usuario que más y menos aparece
+
+```{r}
+usuario_mas <- actividad_usuarios %>%
+  filter(registros == max(registros))
+
+usuario_mas
+
+usuario_menos <- actividad_usuarios %>%
+  filter(registros == min(registros))
+
+usuario_menos
+```
+El usario con mayor frecuencia es U0072 con 13079 registros, mientras que los usuarios con menor frecuencia son U0085 y U0093, con 1 registro

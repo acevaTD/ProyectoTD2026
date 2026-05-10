@@ -198,7 +198,7 @@ length(unique(df_users$UsuarioAfectado))
 Parece que el usuario U0071 no ha hecho nada en todo el curso, y U0072 sha sido 
 desmatriculado.
 
-# Cual fue el dia con más visitas
+# Cual fue el dia con más visitas(carlos)
 ```{r fig5, fig.align='center',fig.cap="Evolución de las visitas diarias"}
 library(ggplot2)
 library(scales)
@@ -223,7 +223,7 @@ ggplot(rank_dias, aes(x = SoloFecha, y = Total)) +
 Se puede observar en este gráfico que el dia que mas se repite es el 13 de junio de 2025.
 
 
-# Primer y último dia del dataframe
+# Primer y último dia del dataframe(carlos)
 ```{r}
 df_grafico <- df_visitas %>% group_by(SoloFecha) %>% summarise(n_visitas = n()) %>% arrange(SoloFecha)
 
@@ -255,3 +255,48 @@ ggplot(df_grafico, aes(x = SoloFecha, y = 1)) +
 ```
 
 Se puede observar en la linea del tiempo que el primer dia del dataframe es el 11-07-2024 y el último día es el 3-3-2026
+
+
+# Comparacion de actividad entre semana y fin de semana(carlos)
+
+```{r}
+library(tidyverse)
+library(lubridate)
+
+logs <- df_users #copia
+
+# Convertir fecha
+logs <- logs %>%mutate(Fecha = ymd_hms(Fecha))
+
+
+logs <- logs %>%mutate(num_dia = wday(Fecha,week_start = 1))
+logs <- logs %>%mutate(tipo_dia = ifelse(num_dia >= 6,"Fin de semana","Entre semana"))
+logs <- logs %>% mutate(fecha_solo = as_date(Fecha))
+
+actividad <- logs %>% count(tipo_dia) #recuento dias
+
+# Gráfico 1(barras)
+g1<- ggplot(actividad,aes(x = tipo_dia,y = n,fill = tipo_dia)) + geom_col() +
+  labs(
+    title = "Comparación de actividad entre semana y fin de semana",
+    x = "",
+    y = "Número de eventos"
+  ) + theme_minimal()
+
+actividad_diaria <- logs %>%
+  count(fecha_solo, tipo_dia)
+
+# Grafico 2(scatterplot)
+g2 <-ggplot(actividad_diaria,aes(x = fecha_solo,y = n,color = tipo_dia)) + geom_point() +
+  labs(
+    title = "Comparación de actividad entre semana y fin de semana",
+    x = "Fecha",
+    y = "Número de eventos",
+    color = "Tipo de día"
+  ) + theme_minimal()
+
+g1 
+g2
+```
+
+En los dos gráfico se muestra la misma información de maneras diferentes. La actividad es mucho mayor entre semana que durante el fin de semana. Esto se debe a que la mayoría de clases, prácticas y entregas se realizan de lunes a viernes. En cambio, los fines de semana la actividad disminuye bastante al haber menos actividad académica

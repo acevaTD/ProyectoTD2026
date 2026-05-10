@@ -407,3 +407,47 @@ usuario_menos <- actividad_usuarios %>%
 usuario_menos
 ```
 El usario con mayor frecuencia es U0072 con 13079 registros, mientras que los usuarios con menor frecuencia son U0085 y U0093, con 1 registro
+
+# ¿Qué tipo de componente es el más repetido?
+```{r}
+logs <- read.csv("data/logs_moodle_anon.csv")
+
+library(ggplot2)
+
+componentes <- logs %>% count(Componente, sort = TRUE)
+
+componentes
+
+componentes %>% top_n(10, n) %>% ggplot(aes(x = reorder(Componente, n), y = n)) + geom_bar(stat = "identity") + coord_flip() +
+  labs(
+    title = "Componentes más frecuentes",
+    x = "Componente",
+    y = "Frecuencia" )
+```
+El tipo de componente más repetido es "Sistema", con 45703 registros
+
+
+# ¿Cuántos usuarios distintos aparecen?
+```{r}
+usuarios_distintos <- n_distinct(logs$Nombre.completo.del.usuario)
+
+usuarios_distintos
+```
+Hay 87 usuarios con nombres distintos
+
+# ¿ A qué hora hay más gente activa en la página?
+```{r}
+
+logs$Hora <- ymd_hms(logs$Hora)
+
+logs$hora_dia <- hour(logs$Hora)
+
+actividad_hora <- logs %>% count(hora_dia)
+
+ggplot(actividad_hora, aes(x = hora_dia, y = n)) + geom_line() + geom_point() +
+  labs(
+    title = "Actividad por hora del día",
+    x = "Hora",
+    y = "Número de eventos" )
+```
+A las 9:00 a.m el número de usuarios activos en la página es mayor que a cualquier otra hora del día

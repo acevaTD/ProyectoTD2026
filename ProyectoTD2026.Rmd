@@ -41,7 +41,31 @@ output:
 ---
 \newpage
 
-```{r include=FALSE}
+
+```{r include=FALSE,echo = FALSE, message=FALSE, warning=FALSE}
+# TODAS LAS LIBRERIAS USADAS
+library(readr)
+library(dplyr)
+library(tidyverse)
+library(lubridate)
+library(stringr)
+library(jsonlite)
+library(ggplot2)
+library(ggrepel)
+library(patchwork)
+library(giscoR)
+library(sf)
+library(maps)
+library(mapdata)
+library(ggthemes)
+library(knitr)
+library(kableExtra)
+library(gridExtra)
+library(grid)
+library(httr)
+```
+
+```{r include=FALSE,echo = FALSE, message=FALSE, warning=FALSE}
 # Importación del archivo .csv
 
 library(readr)
@@ -59,7 +83,7 @@ class(df_users$Fecha)
 
 ```
 
-```{r include=FALSE}
+```{r include=FALSE, echo = FALSE, message=FALSE, warning=FALSE}
 # NombreUsuario, Componente y Origen definidos como factores
 
 df_users$NombreUsuario <- as.factor(df_users$NombreUsuario)
@@ -72,7 +96,7 @@ df_users$Origen <- as.factor(df_users$Origen)
 Hay un total de 26 compnenetes en el fichero.
 
 
-```{r tab_componentes}
+```{r tab_componentes, echo = FALSE, message=FALSE, warning=FALSE}
 type <- as.character(unique(df_users$Componente))
 knitr::kable(rticles::string_to_table(type, 3), 
              col.names = NULL, format = "latex", booktab = TRUE, 
@@ -153,7 +177,7 @@ ggplot(meses_frec, aes(x = Mes, y = Total)) +
 
 Los contextos más visitados son:
 
-```{r}
+```{r echo = FALSE, message=FALSE, warning=FALSE}
 library(dplyr)
 df_users %>% group_by(ContextoEvento) %>% count() %>% filter(n<30000)
 
@@ -161,7 +185,7 @@ ggplot(df_users %>% group_by(ContextoEvento) %>% count() %>% filter(n<30000 & n 
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1), plot.background = element_rect(color = "black"))
 ```
 
-```{r}
+```{r echo = FALSE, message=FALSE, warning=FALSE}
 # Todos los componentes
 library(stringr)
 
@@ -183,7 +207,7 @@ nrow(df_users %>% filter(Componente == "Tarea") %>% distinct(ContextoEvento)) # 
 
 # Usuarios sin retroalimentación
 
-```{r}
+```{r echo = FALSE, message=FALSE, warning=FALSE}
 #table((df_users %>% filter(!is.na(UsuarioAfectado))) == (df_users %>% filter(!is.na(UsuarioAfectado))))
 
 df_users_usuario_afectado <- df_users %>% filter(!is.na(UsuarioAfectado) & UsuarioAfectado != NombreUsuario)
@@ -200,7 +224,7 @@ desmatriculado.
 
 # Información de las IPS
 
-```{r ip-call}
+```{r ip-call, echo = FALSE, message=FALSE, warning=FALSE}
 ## Idea de Copilot Search + Gemini ##
 
 library(httr)
@@ -262,7 +286,7 @@ data <- bind_rows(data, data2)
 # Unión de la información de la IP con los registros
 
 
-```{r}
+```{r echo = FALSE, message=FALSE, warning=FALSE}
 library(ggplot2)
 library(ggrepel)
 library(tidyverse)
@@ -296,7 +320,7 @@ ggplot(df_pie, aes(x = "", y = perc, fill = IPEstado)) +
 
 #Mapa de las IPS
 
-```{r}
+```{r echo = FALSE, message=FALSE, warning=FALSE}
 df_ips_success <- df_users_full %>% filter(IPEstado == "success") %>% filter(IPOrg != "Universidad de Valencia")
 library(giscoR)
 library(sf)
@@ -419,7 +443,7 @@ wrap_plots(mapa_canarias, mapa_esp, widths = c(0.3,1), heights = c(0.3,1), ncol 
 
 # En la Comunidad Valenciana
 
-```{r}
+```{r echo = FALSE, message=FALSE, warning=FALSE}
 df_ips_vlc <- df_ips_success %>% filter(IPRegion == "Valencia") %>% filter(IPOrg != "Universidad de Valencia")
 
 df_ips_lat_lon_vlc <- df_ips_vlc %>% select(IPLat, IPLon, IP) %>% distinct()
@@ -454,7 +478,7 @@ mapa_vlc
 
 # ¿Dónde han estado los Profesores este curso?
 
-```{r}
+```{r echo = FALSE, message=FALSE, warning=FALSE}
 df_profes <- df_ips_success %>% filter(NombreUsuario == "U0072" | NombreUsuario == "U0012" | NombreUsuario == "U0075" | NombreUsuario == "U0095")
 df_ips_lat_lon_profes <- df_profes %>% select(IPLat, IPLon, IP, NombreUsuario) %>% distinct()
 repetidos_profes <- df_profes %>% group_by(IP) %>% count()
@@ -486,7 +510,7 @@ mapa_profes
 
 Parece que el profesor ha estado en Madrid... ¿De excursión o "viaje de negocios"...? Quién sabe. Lo que sí se sabe es cuándo fue:
 
-```{r}
+```{r echo = FALSE, message=FALSE, warning=FALSE}
 View(df_profes %>% filter(IPRegion != "Valencia")) # Estuvo los días 23 y 24 de septiembre (2024)
 View(df_ips_success %>% filter(NombreEvento == "Se ha calificado el envío.") %>% select(NombreUsuario) %>% distinct()) # profesores!!!!
 ```
@@ -495,7 +519,7 @@ U0095, U0075, U0072, U0012 SON PROFESORES!!!! Son los únicos que pueden calific
 
 # Organización histograma
 
-```{r}
+```{r echo = FALSE, message=FALSE, warning=FALSE}
 ggplot(df_users_full %>% group_by(IPOrg) %>% count() %>% filter(n<4000), aes(x = reorder(IPOrg, -n), y = n)) + geom_col() +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1), plot.background = element_rect(color = "black"))
 ```
@@ -503,8 +527,8 @@ ggplot(df_users_full %>% group_by(IPOrg) %>% count() %>% filter(n<4000), aes(x =
 Parece que el usuario U0071 no ha hecho nada en todo el curso, y U0072 sha sido 
 desmatriculado.
 
-# Cual fue el dia con más visitas(carlos)
-```{r fig5, fig.align='center',fig.cap="Evolución de las visitas diarias"}
+# Cual fue el dia con más visitas
+```{r fig5, fig.align='center',echo = FALSE, message=FALSE, warning=FALSE}
 library(ggplot2)
 library(scales)
 
@@ -525,11 +549,12 @@ ggplot(rank_dias, aes(x = SoloFecha, y = Total)) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) # Gira el texto 45 grados
 ```
 
+
 Se puede observar en este gráfico que el dia que mas se repite es el 13 de junio de 2025.
 
 
-# Primer y último dia del dataframe(carlos)
-```{r}
+# Primer y último dia del dataframe
+```{r echo = FALSE, message=FALSE, warning=FALSE}
 df_grafico <- df_visitas %>% group_by(SoloFecha) %>% summarise(n_visitas = n()) %>% arrange(SoloFecha)
 
 primer_acceso <- min(df_grafico$SoloFecha)
@@ -562,9 +587,9 @@ ggplot(df_grafico, aes(x = SoloFecha, y = 1)) +
 Se puede observar en la linea del tiempo que el primer dia del dataframe es el 11-07-2024 y el último día es el 3-3-2026
 
 
-# Comparacion de actividad entre semana y fin de semana(carlos)
+# Comparacion de actividad entre semana y fin de semana
 
-```{r}
+```{r echo = FALSE, message=FALSE, warning=FALSE}
 library(tidyverse)
 library(lubridate)
 
@@ -581,7 +606,7 @@ logs <- logs %>% mutate(fecha_solo = as_date(Fecha))
 actividad <- logs %>% count(tipo_dia) #recuento dias
 
 # Gráfico 1(barras)
-g1<- ggplot(actividad,aes(x = tipo_dia,y = n,fill = tipo_dia)) + geom_col() +
+p1 <- ggplot(actividad,aes(x = tipo_dia,y = n,fill = tipo_dia)) + geom_col() +
   labs(
     title = "Comparación de actividad entre semana y fin de semana",
     x = "",
@@ -591,8 +616,12 @@ g1<- ggplot(actividad,aes(x = tipo_dia,y = n,fill = tipo_dia)) + geom_col() +
 actividad_diaria <- logs %>%
   count(fecha_solo, tipo_dia)
 
+print(p1)
+```
+
+```{r echo = FALSE, message=FALSE, warning=FALSE}
 # Grafico 2(scatterplot)
-g2 <-ggplot(actividad_diaria,aes(x = fecha_solo,y = n,color = tipo_dia)) + geom_point() +
+p2 <- ggplot(actividad_diaria,aes(x = fecha_solo,y = n,color = tipo_dia)) + geom_point() +
   labs(
     title = "Comparación de actividad entre semana y fin de semana",
     x = "Fecha",
@@ -600,15 +629,15 @@ g2 <-ggplot(actividad_diaria,aes(x = fecha_solo,y = n,color = tipo_dia)) + geom_
     color = "Tipo de día"
   ) + theme_minimal()
 
-g1 
-g2
+print(p2)
 ```
+
 
 En los dos gráfico se muestra la misma información de maneras diferentes. La actividad es mucho mayor entre semana que durante el fin de semana. Esto se debe a que la mayoría de clases, prácticas y entregas se realizan de lunes a viernes. En cambio, los fines de semana la actividad disminuye bastante al haber menos actividad académica
 
 # ¿Cuál es el proveedor de servicios más común?
 
-```{r}
+```{r echo = FALSE, message=FALSE, warning=FALSE}
 # Agrupamos por la columna IP y contamos las frecuencias
 proveedor_counts <- as.data.frame(table(df_users$IP))
 colnames(proveedor_counts) <- c("IP", "Frecuencia")
@@ -627,7 +656,7 @@ El proveedor de servicios más común se identifica mediante el análisis de las
 
 # ¿Hay algún usuario afectado que no sea él mismo?
 
-```{r}
+```{r echo = FALSE, message=FALSE, warning=FALSE}
 # Filtramos los registros donde UsuarioAfectado no es NA y es distinto al NombreUsuario
 usuarios_afectados_distintos <- df_users[(!is.na(df_users$UsuarioAfectado)) & (df_users$UsuarioAfectado != "NA") & (df_users$UsuarioAfectado != df_users$NombreUsuario), ]
 
@@ -643,7 +672,7 @@ Podemos ver que existen numerosos registros donde el usuario afectado es distint
 
 # ¿Qué meses hay más tareas?
 
-```{r}
+```{r echo = FALSE, message=FALSE, warning=FALSE}
 # Filtramos por el componente "Tarea"
 tareas <- df_users[df_users$Componente == "Tarea", ]
 
@@ -666,7 +695,7 @@ Gracias al gráfico anterior vemos que el pico máxima de actividad es en el mes
 Los meses de abril, marzo y mayo presentan niveles de actividad moderados pero constantes, lo que sugiere un flujo de trabajo continuo durante el segundo cuatrimestre.
 
 # Concentración de actividad por usuario
-```{r}
+```{r echo = FALSE, message=FALSE, warning=FALSE}
 library(dplyr)
 library(ggplot2)
 
@@ -686,7 +715,7 @@ ggplot(actividad_usuarios, aes(x = NombreUsuario, y = registros)) +
 La actividad está relativamente distribuida entre la mayoría de usuarios, pero el usuario U0069 destaca como un valor atípico, porque acumula muchos más registros que el resto de usuarios.
 
 # Origen que más se repite 
-```{r}
+```{r echo = FALSE, message=FALSE, warning=FALSE}
 
 origen_frecuencia <- df_users %>%
   group_by(Origen) %>%
@@ -700,7 +729,7 @@ El origen más frecuente es web con 106736 registros
 
 # Usuario que más y menos aparece
 
-```{r}
+```{r echo = FALSE, message=FALSE, warning=FALSE}
 usuario_mas <- actividad_usuarios %>%
   filter(registros == max(registros))
 
@@ -714,7 +743,7 @@ usuario_menos
 El usario con mayor frecuencia es U0072 con 13079 registros, mientras que los usuarios con menor frecuencia son U0085 y U0093, con 1 registro
 
 # ¿Qué tipo de componente es el más repetido?
-```{r}
+```{r echo = FALSE, message=FALSE, warning=FALSE}
 logs <- read.csv("data/logs_moodle_anon.csv")
 
 library(ggplot2)
@@ -733,7 +762,7 @@ El tipo de componente más repetido es "Sistema", con 45703 registros
 
 
 # ¿Cuántos usuarios distintos aparecen?
-```{r}
+```{r echo = FALSE, message=FALSE, warning=FALSE}
 usuarios_distintos <- n_distinct(logs$Nombre.completo.del.usuario)
 
 usuarios_distintos
@@ -741,7 +770,7 @@ usuarios_distintos
 Hay 87 usuarios con nombres distintos
 
 # ¿ A qué hora hay más gente activa en la página?
-```{r}
+```{r echo = FALSE, message=FALSE, warning=FALSE}
 
 logs$Hora <- ymd_hms(logs$Hora)
 

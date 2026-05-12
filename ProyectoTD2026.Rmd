@@ -92,6 +92,18 @@ df_users$Origen <- as.factor(df_users$Origen)
 
 ```
 
+Se ha realizado un preprocesamiento que ha incluido la conversión de marcas temporales a formato estándar y la limpieza de registros inconsistentes.
+
+Los datos fueron sometidos a un proceso de limpieza:
+
+**Normalización temporal:** Conversión de registros a formato `POSIXlt`.
+
+**Geolocalización:** Uso de la API `ip-api.com` para identificar la procedencia y el ISP de las conexiones.
+
+**Anonimización:** Se mantiene la privacidad mediante identificadores (U0001-U0095).
+
+Esto permite que las visualizaciones reflejen con precisión la carga de trabajo real del curso.
+
 # Componentes del fichero
 Hay un total de 26 compnenetes en el fichero.
 
@@ -318,6 +330,10 @@ ggplot(df_pie, aes(x = "", y = perc, fill = IPEstado)) +
 
 ```
 
+En esta sección damos un paso más allá de los simples números para entender desde dónde y quiénes se conectan a la plataforma.
+
+Para lograrlo, hemos cruzado cada registro con su ubicación geográfica y su proveedor de Internet. Esto nos permite diferenciar fácilmente cuándo alguien entra desde la red fija de la universidad y cuándo lo hace desde casa o mediante redes móviles. Además, gracias a este rastreo, hemos podido seguir los desplazamientos de los profesores a lo largo del semestre.
+
 #Mapa de las IPS
 
 ```{r echo = FALSE, message=FALSE, warning=FALSE}
@@ -440,6 +456,8 @@ wrap_plots(mapa_canarias, mapa_esp, widths = c(0.3,1), heights = c(0.3,1), ncol 
                 caption = "Registros Moodle Curso TD 2024-2025")
 ```
 
+En el mapa de España se puede observar que a parte de la comunidad valenciana también hay accesos desde otras zonas que pueden sorprender por su lejanía como: madrid, pais vasco, andalucia, islas baleares...
+
 
 # En la Comunidad Valenciana
 
@@ -476,6 +494,8 @@ mapa_vlc <- mapa_mundo %>%
 mapa_vlc
 ```
 
+Si nos fijamos en el mapa de la comunidad valenciana podemos ver que en muchas zonas de la comunidad valencia hay actividad, aunque en la zona de valencia es donde mas actividad hay, cosa que tine mucho sentido porque el campus de la universidad está en burjassot y la mayoria de la gente suele ser de Valencia. Pero como hemos dicho tambien hay bastante actividad en zonas del litoral y alguna zona más interior.
+
 # ¿Dónde han estado los Profesores este curso?
 
 ```{r echo = FALSE, message=FALSE, warning=FALSE}
@@ -508,14 +528,14 @@ mapa_profes <- mapa_mundo %>%
 mapa_profes
 ```
 
-Parece que el profesor ha estado en Madrid... ¿De excursión o "viaje de negocios"...? Quién sabe. Lo que sí se sabe es cuándo fue:
-
 ```{r echo = FALSE, message=FALSE, warning=FALSE}
 View(df_profes %>% filter(IPRegion != "Valencia")) # Estuvo los días 23 y 24 de septiembre (2024)
 View(df_ips_success %>% filter(NombreEvento == "Se ha calificado el envío.") %>% select(NombreUsuario) %>% distinct()) # profesores!!!!
 ```
 
-U0095, U0075, U0072, U0012 SON PROFESORES!!!! Son los únicos que pueden calificar. Tienen el NombreEvento de "Se ha calificado el envío".
+Como se observa en los mapas a que acabamos de ver, la actividad no se limita solo al campus de Valencia. Se detectan conexiones en diversos puntos de España e incluso desplazamientos puntuales de los docentes (usuarios U0095, U0075, U0072 y U0012) fuera de la provincia, posiblemente por motivos de trabajo o viajes personales.
+
+\newpage
 
 # Organización histograma
 
@@ -549,9 +569,7 @@ ggplot(rank_dias, aes(x = SoloFecha, y = Total)) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) # Gira el texto 45 grados
 ```
 
-
-Se puede observar en este gráfico que el dia que mas se repite es el 13 de junio de 2025.
-
+Se puede observar en este gráfico que el dia que mas se repite es el 13 de junio de 2025, esto se puede deber a que es el periodo en el que hay más exámenes ya que se juntan los de la primera y segunda convocatoria
 
 # Primer y último dia del dataframe
 ```{r echo = FALSE, message=FALSE, warning=FALSE}
@@ -584,7 +602,7 @@ ggplot(df_grafico, aes(x = SoloFecha, y = 1)) +
   )
 ```
 
-Se puede observar en la linea del tiempo que el primer dia del dataframe es el 11-07-2024 y el último día es el 3-3-2026
+Según esta línea del tiempo que se puede ver como tiene marcados en color azul el primer día de accesos 11-07-2024 como el último día 3-3-2026. Se puede observar como los puntos mas gruesos se encuentran en los 7 meses centrales, que es, el periodo de tiempo que dura el cuatrimestre. Aunque también hay actividad en el mes de julio, posiblemente porque los profesores trabajan durante ese més, ya que en agosto disminuye considerablemente.
 
 
 # Comparacion de actividad entre semana y fin de semana
@@ -633,7 +651,7 @@ print(p2)
 ```
 
 
-En los dos gráfico se muestra la misma información de maneras diferentes. La actividad es mucho mayor entre semana que durante el fin de semana. Esto se debe a que la mayoría de clases, prácticas y entregas se realizan de lunes a viernes. En cambio, los fines de semana la actividad disminuye bastante al haber menos actividad académica
+En los dos gráfico se muestra la misma información de maneras diferentes. La actividad es mucho mayor entre semana que durante el fin de semana. Esto se debe a que la mayoría de clases, prácticas y entregas se realizan de lunes a viernes. En cambio, los fines de semana la actividad disminuye bastante al haber menos actividad académica.
 
 # ¿Cuál es el proveedor de servicios más común?
 
@@ -712,7 +730,7 @@ ggplot(actividad_usuarios, aes(x = NombreUsuario, y = registros)) +
        x = "Usuario", y = "Número de registros")
 
 ```
-La actividad está relativamente distribuida entre la mayoría de usuarios, pero el usuario U0069 destaca como un valor atípico, porque acumula muchos más registros que el resto de usuarios.
+La actividad está relativamente distribuida entre la mayoría de usuarios, pero el usuario U0069 destaca como un valor atípico(outlier), acumulando muchos más registros que el resto de usuarios.
 
 # Origen que más se repite 
 ```{r echo = FALSE, message=FALSE, warning=FALSE}
@@ -725,7 +743,7 @@ origen_frecuencia <- df_users %>%
 origen_frecuencia
 
 ```
-El origen más frecuente es web con 106736 registros
+El origen más frecuente es web con 106736 registros, seguramente es debido a que la mayoría de estudiantes y profesores usan su ordenador cuando tiene que trabajar o durante su jornada lectiva
 
 # Usuario que más y menos aparece
 
@@ -740,7 +758,7 @@ usuario_menos <- actividad_usuarios %>%
 
 usuario_menos
 ```
-El usario con mayor frecuencia es U0072 con 13079 registros, mientras que los usuarios con menor frecuencia son U0085 y U0093, con 1 registro
+El usario con mayor frecuencia es U0072 con 13079 registros, mientras que los usuarios con menor frecuencia son U0085 y U0093, con 1 registro.
 
 # ¿Qué tipo de componente es el más repetido?
 ```{r echo = FALSE, message=FALSE, warning=FALSE}
@@ -758,7 +776,7 @@ componentes %>% top_n(10, n) %>% ggplot(aes(x = reorder(Componente, n), y = n)) 
     x = "Componente",
     y = "Frecuencia" )
 ```
-El tipo de componente más repetido es "Sistema", con 45703 registros
+El tipo de componente más repetido es "Sistema" con 45703 registros, no obstante, se puede observar también como las tareas y los cuestionarios le siguen ya que són actividades que tienen un peso en la nota continua de las asignaturas y la mayoría de la gente suele completarlos para obtener esas notas
 
 
 # ¿Cuántos usuarios distintos aparecen?
@@ -767,7 +785,7 @@ usuarios_distintos <- n_distinct(logs$Nombre.completo.del.usuario)
 
 usuarios_distintos
 ```
-Hay 87 usuarios con nombres distintos
+Podemos observar que hay 87 usuarios con nombres distintos, que seguramente incluirá a alumnos matriculados en el curso y los profesores que imparten tanto la clase de teoría como los que imparten los laboratorios.
 
 # ¿ A qué hora hay más gente activa en la página?
 ```{r echo = FALSE, message=FALSE, warning=FALSE}
@@ -784,4 +802,21 @@ ggplot(actividad_hora, aes(x = hora_dia, y = n)) + geom_line() + geom_point() +
     x = "Hora",
     y = "Número de eventos" )
 ```
-A las 9:00 a.m el número de usuarios activos en la página es mayor que a cualquier otra hora del día
+A las 9:00 a.m el número de usuarios activos en la página es el pico, tambié se puede observar como va disminuyendo el acceso de usuarios durante la jornada lectiva. Por último, también se puede ver como por la tarde vuelve a haber algo más de gente activa, posiblemente porque estén repasando o haciendo ejercicios.
+
+\newpage
+
+# Conclusiones finales
+
+Tras el análisis detallado de los registros, estas son las ideas clave que resumen la actividad del curso:
+
+> **Hallazgo Principal:** El análisis temporal revela que la carga de trabajo no es uniforme, concentrandose en momentos concretos del curso
+
+* **Días de máxima actividad:** El **13 de junio de 2025** se registró el mayor volumen de tráfico de todo el curso. Este pico coincide directamente con el periodo de **cierre de actas y exámenes finales**, lo que demuestra una alta dependencia de la plataforma en momentos de estrés académico.
+
+* **Hábitos de estudio:** Aunque la red institucional de la UV es la fuente principal de conexiones, se observa una actividad muy intensa durante los fines de semana desde **redes domésticas**, lo que sugiere que el alumnado utiliza el tiempo libre para avanzar en sus entregas.
+
+* **Componentes más utilizados:** La navegación por el **"Sistema"** es la acción más frecuente, lo que indica un uso exploratorio de la plataforma. Sin embargo, los apartados de **"Cuestionarios"** y **"Tareas"** le siguen muy de cerca, ya que són los puntos donde se concentra una parte de la nota de la asignatura.
+
+***
+

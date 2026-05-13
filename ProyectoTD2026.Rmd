@@ -34,13 +34,28 @@ header-includes:
   - \usepackage{longtable}
   - \providecommand{\pandocbounded}[1]{#1}
   - \usepackage{pdflscape}
+  - \usepackage{float}
   
 output: 
   rticles::elsevier_article:
     keep_tex: true
 ---
-\newpage
+# Introducción
 
+En este informe se han analizado todos los registros de la plataforma Moodle del curso de Tratamiento de Datos 2024-2025. Partiendo de estos datos, se ha intentado encontrar patrones, sacar conclusiones y responder a algunas preguntas.
+
+> **Las cuestiones que hemos intentado responder han sido**:
+
+* Los meses y contextos con más registros.
+* Los usuarios que no tienen retroalimentación.
+* Información relacionada con las IPS.
+* Proveedor de servicios más frecuente.
+* Usuarios afectados que no son ellos mismos, y en qué contexto aparecen.
+* La frecuencia de las tareas en función del mes.
+* El tipo de componente que más aparece.
+* Las horas en las que hay más gente activa.
+
+***
 
 ```{r include=FALSE,echo = FALSE, message=FALSE, warning=FALSE}
 # TODAS LAS LIBRERIAS USADAS
@@ -65,6 +80,7 @@ library(grid)
 library(httr)
 ```
 
+\newpage
 ```{r include=FALSE,echo = FALSE, message=FALSE, warning=FALSE}
 # Importación del archivo .csv
 
@@ -104,7 +120,7 @@ Los datos fueron sometidos a un proceso de limpieza:
 Esto permite que las visualizaciones reflejen con precisión la carga de trabajo real del curso.
 
 # Componentes del fichero
-Hay un total de 26 compnenetes en el fichero.
+Hay un total de 26 componentes en el fichero.
 
 
 ```{r tab_componentes, echo = FALSE, message=FALSE, warning=FALSE}
@@ -118,9 +134,9 @@ Como se puede observar en la Tabla \ref{tab:tab_componentes}, hay 26 componentes
 
 # Mes con más registros
 
-Los meses en los que más registros han habido se pueden observar en la siguiente tabla (\ref{fig:fig_registros_meses)}:
+Los meses en los que más registros han habido se pueden observar en la siguiente figura (Figura \ref{fig:fig_registros_meses)}:
 
-```{r fig_registros_meses, fig.align='center', out.width="100%", fig.cap = "\\label{fig_registros_meses}Registros totales por meses.", echo = FALSE, message=FALSE, warning=FALSE, results='hide'}
+```{r fig_registros_meses, fig.align='center', out.width="90%", fig.cap = "\\label{fig_registros_meses}Registros totales por meses.", echo = FALSE, message=FALSE, warning=FALSE, results='hide', fig.pos='H'}
 
 meses_frec <- df_users %>% group_by(df_users$Fecha$mon + 1) %>% count()
 names(meses_frec) <- c("Mes", "Total")
@@ -146,46 +162,52 @@ ggplot(meses_frec, aes(x = Mes, y = Total)) +
 
 Los contextos más visitados son:
 
-```{r fig_contexto_evento, fig.align='center', out.width="100%", fig.cap = "\\label{fig_contexto_evento}Figura que muestra la cantidad de registros de cada evento.", echo = FALSE, message=FALSE, warning=FALSE, results='hide'}
+```{r eval=FALSE, include=FALSE}
 df_users %>% group_by(ContextoEvento) %>% count() %>% filter(n<30000)
 
 ggplot(df_users %>% group_by(ContextoEvento) %>% count() %>% filter(n<30000 & n > 500), aes(x = ContextoEvento, y = n)) + geom_col() +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1), plot.background = element_rect(color = "black"))
 ```
-Como se puede observar en el bar plot (\ref{fig:fig_contexto_evento}), el cuestionario global de la asignatura es el contexto más visitado por los alumnos, junto al control de asistencia.
+El cuestionario global de la asignatura es el contexto más visitado por los alumnos, junto al control de asistencia.
 
-```{r fig_cuest_y_tareas, fig.align='center', out.width="100%", fig.cap = "\\label{fig_cuest_y_tareas}Figura con todos los cuestionarios y tareas.", echo = FALSE, message=FALSE, warning=FALSE, results='hide'}
+```{r eval=FALSE, include=FALSE}
 # Todos los componentes
 
 ggplot(df_users, aes(x = Componente)) + geom_bar()+
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1), plot.background = element_rect(color = "black"))
+```
 
+```{r fig_cuest_y_tareas, fig.align='center', out.width="90%", fig.cap = "\\label{fig_cuest_y_tareas}Figura con todos los cuestionarios.", echo = FALSE, message=FALSE, warning=FALSE, results='hide'}
 ## Todos los cuestionarios
 plot_cuestionarios <- ggplot(df_users %>% filter(Componente == "Cuestionario"), aes(x = ContextoEvento)) + geom_bar()+
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1), plot.background = element_rect(color = "black"))
 nrow(df_users %>% filter(Componente == "Cuestionario") %>% distinct(ContextoEvento)) # Cantidad de cuestionarios
 
-## Todas las tareas
-plot_tareas <- ggplot(df_users %>% filter(Componente == "Tarea"), aes(x = ContextoEvento)) + geom_bar()+
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1), plot.background = element_rect(color = "black"))
-nrow(df_users %>% filter(Componente == "Tarea") %>% distinct(ContextoEvento)) # Cantidad de tareas
+plot_cuestionarios
 
-plot_cuestionarios / plot_tareas + 
-  plot_annotation(title = 'Cantidad de registros para los eventos y tareas.')
 ```
 
-Observando la \ref{fig:fig_cuest_y_tareas} El cuestionario más visitado es el Cuestionario Global de la asignatura, mientras que la tarea con más registros es el examen de laboratorio de la 1ª convocatoria. También se puede observar en la siguiente tabla (\ref{tab:tab_contexto_evento}):
+Observando la Figura \ref{fig:fig_cuest_y_tareas} El cuestionario más visitado es el Cuestionario Global de la asignatura, mientras que la tarea con más registros es el examen de laboratorio de la 1ª convocatoria. También se puede observar en la siguiente tabla (Tabla \ref{tab:tab_contexto_evento}):
 
 ```{r tab_contexto_evento, echo = FALSE, message=FALSE, warning=FALSE}
-knitr::kable(rticles::string_to_table(as.character(head(df_users %>% group_by(ContextoEvento) %>% count() %>% arrange(desc(n)))), 3), 
-             col.names = NULL, format = "latex", booktab = TRUE, 
-             caption = "Contexto Evento")
+kable(head(df_users %>% group_by(ContextoEvento) %>% count() %>% arrange(desc(n))), 
+      format = "latex", 
+      booktabs = TRUE, 
+      col.names = c("Contexto del Evento", "Registros"), # Nombres limpios para las columnas
+      caption = "\\label{tab:tabla_contexto}Contexto Evento") %>%
+  
+  # Fijamos la tabla en su sitio
+  kable_styling(latex_options = c("hold_position")) %>%
+  
+  # Le damos un ancho máximo a la primera columna. 
+  # Si el texto de ContextoEvento es muy largo, saltará de línea automáticamente.
+  column_spec(1, width = "12cm")
 ```
 
 
 # Usuarios sin retroalimentación
 
-```{r echo = FALSE, message=FALSE, warning=FALSE}
+```{r message=FALSE, warning=FALSE, include=FALSE}
 #table((df_users %>% filter(!is.na(UsuarioAfectado))) == (df_users %>% filter(!is.na(UsuarioAfectado))))
 
 df_users_usuario_afectado <- df_users %>% filter(!is.na(UsuarioAfectado) & UsuarioAfectado != NombreUsuario)
@@ -201,7 +223,7 @@ Parece que el usuario U0071 no ha hecho nada en todo el curso, y U0072 ha sido
 desmatriculado.
 
 
-```{r ip-call, echo=FALSE, message=FALSE, warning=FALSE}
+```{r ip-call, eval=FALSE, message=FALSE, warning=FALSE, include=FALSE}
 # Información de las IPS
 
 ## Idea de Copilot Search + Gemini ##
@@ -262,7 +284,9 @@ data <- bind_rows(data, data2)
 # Unión de la información de la IP con los registros
 
 
-```{r fig_pie_ip_success, fig.align='center', out.width="100%", fig.cap = "\\label{fig_pie_ip_success}Porcentaje de IPS aptas para extraer información de ellas.", echo = FALSE, message=FALSE, warning=FALSE, results='hide'}
+```{r fig_pie_ip_success, fig.align='center', out.width="90%", fig.cap = "\\label{fig_pie_ip_success}Porcentaje de IPS aptas para extraer información de ellas.", echo = FALSE, message=FALSE, warning=FALSE, results='hide'}
+
+load("C:/Users/aleix/OneDrive - Universitat de València/1º CURSO/Tratamiento de los datos/ProyectoTD2026/environment_def.RData")
 
 names(data) <- c("IPEstado", "IPPais", "IPRegion", "IPCiudad", "IPLat", "IPLon", "IPIsp", "IPOrg",  "IP", "IPMensaje")
 names(data)
@@ -295,9 +319,9 @@ En esta sección damos un paso más allá de los simples números para entender 
 
 Para lograrlo, hemos cruzado cada registro con su ubicación geográfica y su proveedor de Internet. Esto nos permite diferenciar fácilmente cuándo alguien entra desde la red fija de la universidad y cuándo lo hace desde casa o mediante redes móviles. Además, gracias a este rastreo, hemos podido seguir los desplazamientos de los profesores a lo largo del semestre, tal y como se puede ver a continuación (\ref{fig:fig_ubic_profes}):
 
-#Mapa de las IPS
+# Mapa de las IPS
 
-```{r fig_ubic_ips, fig.align='center', out.width="100%", fig.cap = "\\label{fig_ubic_ips}Mapa con la ubicación de los registros.", echo = FALSE, message=FALSE, warning=FALSE, results='hide'}
+```{r fig_ubic_ips, fig.align='center', out.width="90%", fig.cap = "\\label{fig_ubic_ips}Mapa con la ubicación de los registros.", echo = FALSE, message=FALSE, warning=FALSE, results='hide'}
 df_ips_success <- df_users_full %>% filter(IPEstado == "success") %>% filter(IPOrg != "Universidad de Valencia")
 
 options(scipen = 999) # para evitar la anotación científica 
@@ -377,12 +401,12 @@ wrap_plots(mapa_canarias, mapa_esp, widths = c(0.3,1), heights = c(0.3,1), ncol 
                 caption = "Registros Moodle Curso TD 2024-2025")
 ```
 
-En el mapa de España se puede observar que a parte de la comunidad valenciana también hay accesos desde otras zonas que pueden sorprender por su lejanía como: Madrid, País vasco, Andalucía, Islas Baleares...
+En el mapa de España (Figura \ref{fig:fig_ubic_ips}) se puede observar que a parte de la comunidad valenciana también hay accesos desde otras zonas que pueden sorprender por su lejanía como: Madrid, País vasco, Andalucía, Islas Baleares...
 
 
 # En la Comunidad Valenciana
 
-```{r fig_ubic_ips_cv, fig.align='center', out.width="100%", fig.cap = "\\label{fig_ubic_ips_cv}Mapa con la ubicación de los registros.", echo = FALSE, message=FALSE, warning=FALSE, results='hide'}
+```{r fig_ubic_ips_cv, fig.align='center', out.width="90%", fig.cap = "\\label{fig_ubic_ips_cv}Mapa con la ubicación de los registros.", echo = FALSE, message=FALSE, warning=FALSE, results='hide'}
 df_ips_vlc <- df_ips_success %>% filter(IPRegion == "Valencia") %>% filter(IPOrg != "Universidad de Valencia")
 
 df_ips_lat_lon_vlc <- df_ips_vlc %>% select(IPLat, IPLon, IP) %>% distinct()
@@ -415,11 +439,11 @@ mapa_vlc <- mapa_mundo %>%
 mapa_vlc
 ```
 
-Si nos fijamos en el mapa de la comunidad valenciana podemos ver que en muchas zonas de la comunidad valencia hay actividad, aunque en la zona de valencia es donde mas actividad hay, cosa que tine mucho sentido porque el campus de la universidad está en burjassot y la mayoria de la gente suele ser de Valencia. Pero como hemos dicho tambien hay bastante actividad en zonas del litoral y alguna zona más interior.
+Si nos fijamos en el mapa de la comunidad valenciana (Figura \ref{fig:fig_ubic_ips_cv}) podemos ver que en muchas zonas de la comunidad valencia hay actividad, aunque en la zona de valencia es donde mas actividad hay, cosa que tine mucho sentido porque el campus de la universidad está en burjassot y la mayoria de la gente suele ser de Valencia. Pero como hemos dicho tambien hay bastante actividad en zonas del litoral y alguna zona más interior.
 
 # ¿Dónde han estado los Profesores este curso?
 
-```{r fig_ubic_profes, fig.align='center', out.width="100%", fig.cap = "\\label{fig_ubic_profes}Mapa con la ubicación de los registros de los profesores.", echo = FALSE, message=FALSE, warning=FALSE, results='hide'}
+```{r fig_ubic_profes, fig.align='center', out.width="90%", fig.cap = "\\label{fig_ubic_profes}Mapa con la ubicación de los registros de los profesores.", echo = FALSE, message=FALSE, warning=FALSE, results='hide'}
 df_profes <- df_ips_success %>% filter(NombreUsuario == "U0072" | NombreUsuario == "U0012" | NombreUsuario == "U0075" | NombreUsuario == "U0095")
 df_ips_lat_lon_profes <- df_profes %>% select(IPLat, IPLon, IP, NombreUsuario) %>% distinct()
 repetidos_profes <- df_profes %>% group_by(IP) %>% count()
@@ -449,12 +473,12 @@ mapa_profes <- mapa_mundo %>%
 mapa_profes
 ```
 
-```{r echo = FALSE, message=FALSE, warning=FALSE}
+```{r eval=FALSE, message=FALSE, warning=FALSE, include=FALSE}
 View(df_profes %>% filter(IPRegion != "Valencia")) # Estuvo los días 23 y 24 de septiembre (2024)
 View(df_ips_success %>% filter(NombreEvento == "Se ha calificado el envío.") %>% select(NombreUsuario) %>% distinct()) # profesores!!!!
 ```
 
-Como se observa en los mapas a que acabamos de ver, la actividad no se limita solo al campus de Valencia. Se detectan conexiones en diversos puntos de España e incluso desplazamientos puntuales de los docentes (usuarios U0095, U0075, U0072 y U0012) fuera de la provincia, posiblemente por motivos de trabajo o viajes personales.
+Como se observa en los mapas de los supuestos profesores (Figura \ref{fig:fig_ubic_profes}), la actividad no se limita solo al campus de Valencia. Se detectan conexiones en diversos puntos de España e incluso desplazamientos puntuales de los docentes (usuarios U0095, U0075, U0072 y U0012) fuera de la provincia, posiblemente por motivos de trabajo o viajes personales.
 
 \newpage
 
@@ -464,7 +488,7 @@ ggplot(df_users_full %>% group_by(IPOrg) %>% count() %>% filter(n<4000), aes(x =
 ```
 
 # ¿Cuál fue el dia con más visitas?
-```{r fig_evol_registros, fig.align='center', out.width="100%", fig.cap = "\\label{fig_evol_registros}Gráfico de las visitas diarias.", echo = FALSE, message=FALSE, warning=FALSE, results='hide'}
+```{r fig_evol_registros, fig.align='center', out.width="90%", fig.cap = "\\label{fig_evol_registros}Gráfico de las visitas diarias.", echo = FALSE, message=FALSE, warning=FALSE, results='hide'}
 
 df_visitas <- df_users
 
@@ -483,10 +507,10 @@ ggplot(rank_dias, aes(x = SoloFecha, y = Total)) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1)) # Gira el texto 45 grados
 ```
 
-Se puede observar en \ref{fig:fig_evol_registros} que el dia que mas se repite es el 13 de junio de 2025, esto se puede deber a que es el periodo en el que hay más exámenes ya que se juntan los de la primera y segunda convocatoria
+Se puede observar en la Figura \ref{fig:fig_evol_registros} que el día que mas se repite es el 13 de junio de 2025, esto se puede deber a que es el periodo en el que hay más exámenes ya que se juntan los de la primera y segunda convocatoria
 
 # Primer y último dia de los registros
-```{r fig_primer_ultimo_dia, fig.align='center', out.width="100%", fig.cap = "\\label{fig_primer_ultimo_dia}Gráfico con los días de los registros.", echo = FALSE, message=FALSE, warning=FALSE, results='hide'}
+```{r fig_primer_ultimo_dia, fig.align='center', out.width="90%", fig.cap = "\\label{fig_primer_ultimo_dia}Gráfico con los días de los registros.", echo = FALSE, message=FALSE, warning=FALSE, results='hide', fig.pos='H'}
 df_grafico <- df_visitas %>% group_by(SoloFecha) %>% summarise(n_visitas = n()) %>% arrange(SoloFecha)
 
 primer_acceso <- min(df_grafico$SoloFecha)
@@ -521,7 +545,7 @@ La línea del tiempo tiene en color azul el primer y último día de los registr
 
 # Comparacion de actividad entre semana y fin de semana
 
-```{r fig_entre_semana_fin_semana, fig.align='center', out.width="100%", fig.cap = "\\label{fig_entre_semana_fin_semana}Gráfico con los registros entre semana y fin de semana.", echo = FALSE, message=FALSE, warning=FALSE, results='hide'}
+```{r fig_entre_semana_fin_semana, fig.align='center', out.width="90%", fig.cap = "\\label{fig_entre_semana_fin_semana}Gráfico con los registros entre semana y fin de semana.", echo = FALSE, message=FALSE, warning=FALSE, results='hide', fig.pos='H'}
 
 logs <- df_users #copia
 
@@ -549,7 +573,7 @@ actividad_diaria <- logs %>%
 print(p1)
 ```
 
-```{r fig_entre_semana_fin_semana_scatter, fig.align='center', out.width="100%", fig.cap = "\\label{fig_entre_semana_fin_semana_scatter}Gráfico con los registros entre semana y fin de semana (scatter plot).", echo = FALSE, message=FALSE, warning=FALSE, results='hide'}
+```{r fig_entre_semana_fin_semana_scatter, fig.align='center', out.width="90%", fig.cap = "\\label{fig_entre_semana_fin_semana_scatter}Gráfico con los registros entre semana y fin de semana (scatter plot).", echo = FALSE, message=FALSE, warning=FALSE, results='hide', fig.pos='H'}
 # Grafico 2(scatterplot)
 p2 <- ggplot(actividad_diaria,aes(x = fecha_solo,y = n,color = tipo_dia)) + geom_point() +
   labs(
@@ -563,11 +587,11 @@ print(p2)
 ```
 
 
-En los dos gráfico se muestra la misma información de maneras diferentes. La actividad es mucho mayor entre semana que durante el fin de semana. Esto se debe a que la mayoría de clases, prácticas y entregas se realizan de lunes a viernes. En cambio, los fines de semana la actividad disminuye bastante al haber menos actividad académica.
+En los dos gráficos se muestra la misma información de maneras diferentes. La actividad es mucho mayor entre semana que durante el fin de semana. Esto se debe a que la mayoría de clases, prácticas y entregas se realizan de lunes a viernes. En cambio, los fines de semana la actividad disminuye bastante al haber menos actividad académica.
 
 # ¿Cuál es el proveedor de servicios más común?
 
-```{r fig_proovedores, fig.align='center', out.width="100%", fig.cap = "\\label{fig_proovedores}Top 10 proveedores.", echo = FALSE, message=FALSE, warning=FALSE, results='hide'}
+```{r fig_proovedores, fig.align='center', out.width="90%", fig.cap = "\\label{fig_proovedores}Top 10 proveedores.", echo = FALSE, message=FALSE, warning=FALSE, results='hide', fig.pos='H'}
 # Agrupamos por la columna IP y contamos las frecuencias
 proveedor_counts <- as.data.frame(table(df_users$IP))
 colnames(proveedor_counts) <- c("IP", "Frecuencia")
@@ -577,7 +601,7 @@ proveedor_counts <- proveedor_counts[order(-proveedor_counts$Frecuencia), ]
 head(proveedor_counts, 10)
 
 # Gráfico para obtener las conclusiones visualmente
-library(ggplot2)
+
 ggplot(head(proveedor_counts, 10), aes(x = reorder(IP, Frecuencia), y = Frecuencia)) + geom_col(fill = "blue") + coord_flip() + labs(title = "Top 10 Direcciones IP (Proveedores)", x = "Dirección IP", y = "Número de interacciones") + theme_minimal()
 ```
 
@@ -586,7 +610,7 @@ ggplot(head(proveedor_counts, 10), aes(x = reorder(IP, Frecuencia), y = Frecuenc
 
 # ¿Hay algún usuario afectado que no sea él mismo?
 
-```{r tab_users_afectados, fig.align='center', out.width="100%", fig.cap = "\\label{tab_users_afectados}Eventos con usuarios afectados.", echo = FALSE, message=FALSE, warning=FALSE, results='hide'}
+```{r tab_users_afectados, fig.align='center', out.width="90%", fig.cap = "\\label{tab_users_afectados}Eventos con usuarios afectados.", echo = FALSE, message=FALSE, warning=FALSE, results='hide', fig.pos='H'}
 # Filtramos los registros donde UsuarioAfectado no es NA y es distinto al NombreUsuario
 usuarios_afectados_distintos <- df_users[(!is.na(df_users$UsuarioAfectado)) & (df_users$UsuarioAfectado != "NA") & (df_users$UsuarioAfectado != df_users$NombreUsuario), ]
 
@@ -594,11 +618,19 @@ usuarios_afectados_distintos <- df_users[(!is.na(df_users$UsuarioAfectado)) & (d
 #nrow(usuarios_afectados_distintos)
 
 # Tipo de eventos
-unique(usuarios_afectados_distintos$NombreEvento)
-type <- as.character(unique(usuarios_afectados_distintos$NombreEvento))
-knitr::kable(rticles::string_to_table(type, 3), 
-             col.names = NULL, format = "latex", booktab = TRUE, 
-             caption = "Eventos con usuarios afectados distintos.")
+df_eventos_unicos <- data.frame(
+  Nombre_del_Evento = unique(usuarios_afectados_distintos$NombreEvento)
+)
+
+# 2. Generamos la tabla en LaTeX
+kable(df_eventos_unicos, 
+      format = "latex", 
+      booktabs = TRUE, 
+      col.names = c("Nombre del Evento"), # Nombre bonito para la cabecera
+      caption = "\\label{tab:tabla_eventos}Tipos de eventos únicos registrados.") %>%
+  
+  # Fijamos la tabla en su sitio ("H")
+  kable_styling(latex_options = c("hold_position"))
 ```
 
 A partir de \ref{tab:tab_users_afectados}, podemos ver que existen numerosos registros donde el usuario afectado es distinto al autor de la acción (15682). Esto sucede en eventos como los que se han impreso por pantalla, cuando un usuario visualiza el perfil de otro, cuando se realizan matriculaciones en grupos,... Por ejemplo podemos observar en el data frame, registros como el del usuario U0072 que interactúa con el perfil o datos de otros usuarios como U0055.
@@ -606,7 +638,7 @@ A partir de \ref{tab:tab_users_afectados}, podemos ver que existen numerosos reg
 
 # ¿Qué meses hay más tareas?
 
-```{r echo = FALSE, message=FALSE, warning=FALSE}
+```{r fig_tareas_meses, fig.align='center', out.width="90%", fig.cap = "\\label{fig_tareas_meses}Top 10 proveedores.", echo = FALSE, message=FALSE, warning=FALSE, results='hide', fig.pos='H'}
 # Filtramos por el componente "Tarea"
 tareas <- df_users[df_users$Componente == "Tarea", ]
 
@@ -621,17 +653,15 @@ colnames(df_meses_tareas) <- c("Mes", "Cantidad")
 nombres_meses <- c("Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre")
 
 # Gráfico para obtener las conclusiones visualmente
-library(ggplot2)
-ggplot(df_meses_tareas, aes(x = Mes, y = Cantidad)) + geom_bar(stat = "identity", fill = "green") + scale_x_discrete(labels = nombres_meses[as.numeric(levels(df_meses_tareas$Mes))]) + labs(title = "Actividad de Tareas por Mes", x = "Mes", y = "Total de registros") + theme_minimal()
+
+ggplot(df_meses_tareas, aes(x = Mes, y = Cantidad)) + geom_bar(stat = "identity", fill = "lightgreen") + scale_x_discrete(labels = nombres_meses[as.numeric(levels(df_meses_tareas$Mes))]) + labs(title = "Actividad de Tareas por Mes", x = "Mes", y = "Total de registros") + theme_minimal()
 ```
 
-Gracias al gráfico anterior vemos que el pico máxima de actividad es en el mes de febrero, con mucha diferencia. Esto indica que es el mes donde se concentran la mayoría de las entregas finales, correcciones, cierres de actividades evaluables del primer semestre o inicio del segundo,...
+Gracias al gráfico anterior (Figura \ref{fig:fig_tareas_meses}) vemos que el pico máxima de actividad es en el mes de febrero, con mucha diferencia. Esto indica que es el mes donde se concentran la mayoría de las entregas finales, correcciones, cierres de actividades evaluables del primer semestre o inicio del segundo,...
 Los meses de abril, marzo y mayo presentan niveles de actividad moderados pero constantes, lo que sugiere un flujo de trabajo continuo durante el segundo cuatrimestre.
 
 # Concentración de actividad por usuario
-```{r echo = FALSE, message=FALSE, warning=FALSE}
-library(dplyr)
-library(ggplot2)
+```{r fig_actividad_usuarios, fig.align='center', out.width="90%", fig.cap = "\\label{fig_actividad_usuarios}Top 10 proveedores.", echo = FALSE, message=FALSE, warning=FALSE, results='hide', fig.pos='H'}
 
 actividad_usuarios <- df_users %>%
  group_by(NombreUsuario) %>%
@@ -646,20 +676,29 @@ ggplot(actividad_usuarios, aes(x = NombreUsuario, y = registros)) +
        x = "Usuario", y = "Número de registros")
 
 ```
-La actividad está relativamente distribuida entre la mayoría de usuarios, pero el usuario U0069 destaca como un valor atípico(outlier), acumulando muchos más registros que el resto de usuarios.
+La actividad está relativamente distribuida entre la mayoría de usuarios, pero el usuario U0069 destaca como un valor atípico (outlier), acumulando muchos más registros que el resto de usuarios.
 
 # Origen que más se repite 
-```{r echo = FALSE, message=FALSE, warning=FALSE}
+```{r tab_origen, fig.align='center', out.width="90%", fig.cap = "\\label{tab_origen}Eventos con usuarios afectados.", echo = FALSE, message=FALSE, warning=FALSE, results='hide', fig.pos='H'}
 
 origen_frecuencia <- df_users %>%
   group_by(Origen) %>%
   summarise(total = n()) %>%
   arrange(desc(total))
 
-origen_frecuencia
+
+
+kable(origen_frecuencia, 
+      format = "latex", 
+      booktabs = TRUE, 
+      col.names = c("Origen de los registros", "Total"), # Nombre bonito para la cabecera
+      caption = "\\label{tab:tabla_eventos}Tipos de eventos únicos registrados.") %>%
+  
+  # Fijamos la tabla en su sitio ("H")
+  kable_styling(latex_options = c("hold_position"))
 
 ```
-El origen más frecuente es web con 106736 registros, seguramente es debido a que la mayoría de estudiantes y profesores usan su ordenador cuando tiene que trabajar o durante su jornada lectiva
+El origen más frecuente, tal y como se puede observar en la tabla \ref{tab:tab_origen} es web con 106736 registros, seguramente es debido a que la mayoría de estudiantes y profesores usan su ordenador cuando tiene que trabajar o durante su jornada lectiva cli es el sistema Moodle quizá. LO que está claro es que no está relacionado con los regitros de alumnos, ya que no tienen IP.
 
 # Usuario que más y menos aparece
 
@@ -677,22 +716,36 @@ usuario_menos
 El usuario con mayor frecuencia es U0072 con 13079 registros, mientras que los usuarios con menor frecuencia son U0085 y U0093, con 1 registro.
 
 # ¿Qué tipo de componente es el más repetido?
-```{r echo = FALSE, message=FALSE, warning=FALSE}
-logs <- read.csv("data/logs_moodle_anon.csv")
+Todos los componentes (Tabla \ref{tab:tab_componentes_cont}):
+```{r tab_componentes_cont, fig.align='center', out.width="90%", fig.cap = "\\label{tab_componentes}Eventos con usuarios afectados.", echo = FALSE, message=FALSE, warning=FALSE, results='hide', fig.pos='H'}
 
-library(ggplot2)
+componentes <- df_users %>% count(Componente, sort = TRUE)
 
-componentes <- logs %>% count(Componente, sort = TRUE)
 
-componentes
+kable(componentes, 
+      format = "latex", 
+      booktabs = TRUE, 
+      col.names = c("Componente", "Total"), # Nombres limpios para las columnas
+      caption = "\\label{tab:tabla_contexto}Contexto Evento") %>%
+  
+  # Fijamos la tabla en su sitio
+  kable_styling(latex_options = c("hold_position")) %>%
+  
+  # Le damos un ancho máximo a la primera columna. 
+  # Si el texto de ContextoEvento es muy largo, saltará de línea automáticamente.
+  column_spec(1, width = "12cm")
 
+```
+
+```{r fig_componentes, fig.align='center', out.width="90%", fig.cap = "\\label{fig_componentes}Top 10 proveedores.", echo = FALSE, message=FALSE, warning=FALSE, results='hide', fig.pos='H'}
 componentes %>% top_n(10, n) %>% ggplot(aes(x = reorder(Componente, n), y = n)) + geom_bar(stat = "identity") + coord_flip() +
   labs(
     title = "Componentes más frecuentes",
     x = "Componente",
     y = "Frecuencia" )
 ```
-El tipo de componente más repetido es "Sistema" con 45703 registros, no obstante, se puede observar también como las tareas y los cuestionarios le siguen ya que són actividades que tienen un peso en la nota continua de las asignaturas y la mayoría de la gente suele completarlos para obtener esas notas
+
+El tipo de componente más repetido es "Sistema" con 45703 registros, no obstante, se puede observar también como las tareas y los cuestionarios le siguen ya que son actividades que tienen un peso en la nota continua de las asignaturas y la mayoría de la gente suele completarlos para obtener esas notas
 
 
 # ¿Cuántos usuarios distintos aparecen?
@@ -701,11 +754,11 @@ usuarios_distintos <- n_distinct(logs$Nombre.completo.del.usuario)
 
 usuarios_distintos
 ```
-Podemos observar que hay 87 usuarios con nombres distintos, que seguramente incluirá a alumnos matriculados en el curso y los profesores que imparten tanto la clase de teoría como los que imparten los laboratorios.
+Hay 87 usuarios con nombres distintos, que seguramente incluirá a alumnos matriculados en el curso y los profesores que imparten tanto la clase de teoría como los que imparten los laboratorios.
 
 # ¿ A qué hora hay más gente activa en la página?
-```{r echo = FALSE, message=FALSE, warning=FALSE}
-
+```{r fig_actividad_hora, fig.align='center', out.width="90%", fig.cap = "\\label{fig_actividad_hora}Top 10 proveedores.", echo = FALSE, message=FALSE, warning=FALSE, results='hide', fig.pos='H'}
+logs <- read_csv("data/logs_moodle_anon.csv")
 logs$Hora <- ymd_hms(logs$Hora)
 
 logs$hora_dia <- hour(logs$Hora)
@@ -718,7 +771,7 @@ ggplot(actividad_hora, aes(x = hora_dia, y = n)) + geom_line() + geom_point() +
     x = "Hora",
     y = "Número de eventos" )
 ```
-A las 9:00 a.m el número de usuarios activos en la página es el pico, tambié se puede observar como va disminuyendo el acceso de usuarios durante la jornada lectiva. Por último, también se puede ver como por la tarde vuelve a haber algo más de gente activa, posiblemente porque estén repasando o haciendo ejercicios.
+A las 9:00 a.m el número de usuarios activos en la página es el pico, también se puede observar (Figura \ref{fig:fig_actividad_hora}) como va disminuyendo el acceso de usuarios durante la jornada lectiva. Por último, también se puede ver como por la tarde vuelve a haber algo más de gente activa, posiblemente porque estén repasando o haciendo ejercicios.
 
 \newpage
 

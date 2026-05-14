@@ -712,6 +712,11 @@ kable(origen_frecuencia,
   # Fijamos la tabla en su sitio ("H")
   kable_styling(latex_options = c("hold_position"))
 
+ggplot(origen_frecuencia, aes(x = Origen, y = total)) +
+  geom_col() +
+  labs(title = "Usuarios por Origen", x = "Origen", y = "Total") 
+
+
 ```
 El origen más frecuente, tal y como se puede observar en la tabla \ref{tab:tab_origen} es web con 106736 registros, seguramente es debido a que la mayoría de estudiantes y profesores usan su ordenador cuando tiene que trabajar o durante su jornada lectiva cli es el sistema Moodle quizá. LO que está claro es que no está relacionado con los regitros de alumnos, ya que no tienen IP.
 
@@ -727,6 +732,16 @@ usuario_menos <- actividad_usuarios %>%
   filter(registros == min(registros))
 
 usuario_menos
+
+ggplot(actividad_usuarios, aes(x = "", y = registros)) +
+  geom_jitter(width = 0.2, color = "lightblue", size = 3, alpha = 0.7) +
+  geom_point(data = usuario_mas, aes(x = "", y = registros), color = "darkgreen", size = 4) +
+  geom_point(data = usuario_menos, aes(x = "", y = registros), color = "darkblue", size = 4) +
+  geom_text(data = usuario_mas, aes(label = NombreUsuario), x = "", hjust = -0.2, color = "darkgreen", size = 4) +
+  geom_text(data = usuario_menos, aes(label = NombreUsuario), x = "", hjust = -0.2, color = "darkblue", size = 4) +
+  labs(title = "Actividad de usuarios", subtitle = "Verde: más activo | Azul oscuro: menos activo", x = "", y = "Registros") +
+  theme_minimal()
+
 ```
 El usuario con mayor frecuencia es U0072 con 13079 registros, mientras que los usuarios con menor frecuencia son U0085 y U0093, con 1 registro.
 

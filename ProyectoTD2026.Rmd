@@ -691,7 +691,7 @@ ggplot(actividad_usuarios, aes(x = NombreUsuario, y = registros)) +
        x = "Usuario", y = "Número de registros")
 
 ```
-La actividad está relativamente distribuida entre la mayoría de usuarios, pero el usuario U0069 destaca como un valor atípico (outlier), acumulando muchos más registros que el resto de usuarios.
+La actividad está relativamente distribuida entre la mayoría de usuarios, pero el usuario U0071 destaca como un valor atípico (outlier), acumulando muchos más registros que el resto de usuarios.
 
 # Origen que más se repite 
 ```{r tab_origen, fig.align='center', out.width="90%", fig.cap = "\\label{tab_origen}Eventos con usuarios afectados.", echo = FALSE, message=FALSE, warning=FALSE, results='hide', fig.pos='H', results='asis'}

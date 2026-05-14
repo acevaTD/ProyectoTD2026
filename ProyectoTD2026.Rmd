@@ -40,11 +40,23 @@ output:
   rticles::elsevier_article:
     keep_tex: true
 ---
-# Introducción
 
-En este informe se han analizado todos los registros de la plataforma Moodle del curso de Tratamiento de Datos 2024-2025. Partiendo de estos datos, se ha intentado encontrar patrones, sacar conclusiones y responder a algunas preguntas.
+\section{Introducción}
 
-> **Las cuestiones que hemos intentado responder han sido**:
+Este proyecto analiza los registros de actividad (logs) de Moodle de la asignatura \textbf{Tratamiento de Datos (TD)} durante el curso \textbf{2024-2025}. El objetivo fundamental es transformar los datos brutos del archivo CSV en información de valor para comprender la interacción de los usuarios con la plataforma educativa.
+
+\subsection{Objetivos principales}
+Para este análisis se han definido los siguientes puntos clave:
+
+\begin{itemize}
+    \item \textbf{Uso del sistema:} Identificar los componentes y eventos con mayor frecuencia de registro.
+    \item \textbf{Patrones temporales:} Analizar la evolución de la actividad según el mes, día de la semana y franjas horarias.
+    \item \textbf{Geolocalización:} Rastrear las direcciones IP para determinar la procedencia de las conexiones (redes universitarias vs. redes externas).
+    \item \textbf{Diferenciación de roles:} Distinguir el comportamiento entre el alumnado y el personal docente mediante acciones específicas como la calificación de tareas.
+\end{itemize}
+
+\subsection{Preguntas}
+Las cuestiones que hemos intentado responder han sido:
 
 * Los meses y contextos con más registros.
 * Los usuarios que no tienen retroalimentación.
@@ -54,6 +66,9 @@ En este informe se han analizado todos los registros de la plataforma Moodle del
 * La frecuencia de las tareas en función del mes.
 * El tipo de componente que más aparece.
 * Las horas en las que hay más gente activa.
+
+\subsection{Metodología}
+El trabajo se ha desarrollado íntegramente en \texttt{R}, utilizando el ecosistema \textit{tidyverse} para la limpieza de datos, \textit{ggplot2} para la generación de visualizaciones avanzadas y la integración de APIs externas para la obtención de metadatos geográficos a partir de las direcciones IP.
 
 ***
 

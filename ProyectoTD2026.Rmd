@@ -238,7 +238,7 @@ Parece que el usuario U0071 no ha hecho nada en todo el curso, y U0072 ha sido
 desmatriculado.
 
 
-```{r ip-call, eval=FALSE, message=FALSE, warning=FALSE, include=FALSE}
+```{r ip-call, message=FALSE, warning=FALSE, include=FALSE}
 # Información de las IPS
 
 ## Idea de Copilot Search + Gemini ##
@@ -299,9 +299,7 @@ data <- bind_rows(data, data2)
 # Unión de la información de la IP con los registros
 
 
-```{r fig_pie_ip_success, fig.align='center', out.width="90%", fig.cap = "\\label{fig_pie_ip_success}Porcentaje de IPS aptas para extraer información de ellas.", echo = FALSE, message=FALSE, warning=FALSE, results='hide'}
-
-load("C:/Users/aleix/OneDrive - Universitat de València/1º CURSO/Tratamiento de los datos/ProyectoTD2026/environment_def.RData")
+```{r fig_pie_ip_success, echo=FALSE, fig.align='center', fig.cap="\\label{fig_pie_ip_success}Porcentaje de IPS aptas para extraer información de ellas.", message=FALSE, warning=FALSE, out.width="90%", results='hide'}
 
 names(data) <- c("IPEstado", "IPPais", "IPRegion", "IPCiudad", "IPLat", "IPLon", "IPIsp", "IPOrg",  "IP", "IPMensaje")
 names(data)
@@ -780,7 +778,7 @@ El tipo de componente más repetido es "Sistema" con 45703 registros, no obstant
 
 # ¿Cuántos usuarios distintos aparecen?
 ```{r echo = FALSE, message=FALSE, warning=FALSE}
-usuarios_distintos <- n_distinct(logs$Nombre.completo.del.usuario)
+usuarios_distintos <- n_distinct(logs$NombreUsuario)
 
 usuarios_distintos
 ```

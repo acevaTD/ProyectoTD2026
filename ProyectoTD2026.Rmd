@@ -677,19 +677,17 @@ Los meses de abril, marzo y mayo presentan niveles de actividad moderados pero c
 
 # Concentración de actividad por usuario
 ```{r fig_actividad_usuarios, fig.align='center', out.width="90%", fig.cap = "\\label{fig_actividad_usuarios}Top 10 proveedores.", echo = FALSE, message=FALSE, warning=FALSE, results='hide', fig.pos='H'}
-
 actividad_usuarios <- df_users %>%
- group_by(NombreUsuario) %>%
- summarise(registros = n()) %>%
- arrange(desc(registros))
+  mutate(NombreUsuario = as.character(NombreUsuario)) %>%
+  group_by(NombreUsuario) %>%
+  summarise(registros = n()) %>%
+  arrange(desc(registros))
 
-
-ggplot(actividad_usuarios, aes(x = NombreUsuario, y = registros)) +
-  geom_bar(stat = "identity", width = 0.5) +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1))+
+ggplot(actividad_usuarios, aes(x = reorder(NombreUsuario, -registros), y = registros)) +
+  geom_col(fill="grey", width = 0.5) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
   labs(title = "Concentración de actividad por usuario",
        x = "Usuario", y = "Número de registros")
-
 ```
 La actividad está relativamente distribuida entre la mayoría de usuarios, pero el usuario U0072 destaca como un valor atípico (outlier), acumulando muchos más registros que el resto de usuarios.
 
